@@ -5,9 +5,23 @@ edition = "2024"
 license = "MIT"
 authors = ["Jonathan Machen <jon.machen@robotaccomplice.com>"]
 description = "Rust Password Generator - A fast and customizable password generator"
-repository = "https://github.com/jmachen/rpg"
-keywords = ["password", "generator", "security", "cli", "random"]
+repository = "https://github.com/robot-accomplice/rpg"
+readme = "README.md"
+documentation = "https://docs.rs/rpg"
+keywords = ["password", "generator", "security", "cli", "random", "cryptography"]
 categories = ["command-line-utilities", "development-tools"]
+exclude = [
+    "target/",
+    ".github/",
+    ".gitignore",
+    ".pre-commit-config.yaml",
+    ".codecov.yml",
+    ".cargo-credentials.template",
+    "benches/",
+    "tests/",
+    "PUBLISHING.md",
+    "INSTALL.md",
+]
 
 [[bin]]
 name = "rpg"

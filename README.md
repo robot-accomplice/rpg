@@ -2,7 +2,10 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org/)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/jmachen/rpg)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/robot-accomplice/rpg)
+[![Crates.io](https://img.shields.io/crates/v/rpg.svg)](https://crates.io/crates/rpg)
+[![Docs.rs](https://docs.rs/rpg/badge.svg)](https://docs.rs/rpg)
+[![codecov](https://codecov.io/gh/robot-accomplice/rpg/branch/main/graph/badge.svg)](https://codecov.io/gh/robot-accomplice/rpg)
 
 A fast, secure, and customizable command-line password generator written in Rust.
 
@@ -17,10 +20,16 @@ A fast, secure, and customizable command-line password generator written in Rust
 
 ## Installation
 
+### From Crates.io
+
+```bash
+cargo install rpg
+```
+
 ### From Source
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/robot-accomplice/rpg.git
 cd rpg
 cargo build --release
 ```

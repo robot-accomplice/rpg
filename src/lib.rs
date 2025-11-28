@@ -1,3 +1,40 @@
+//! # RPG - Rust Password Generator
+//!
+//! A fast, secure, and customizable password generator library.
+//!
+//! ## Features
+//!
+//! - Customizable character sets
+//! - Character exclusion with range support
+//! - Minimum character type requirements
+//! - Pattern-based generation
+//! - Uniform character distribution
+//!
+//! ## Example
+//!
+//! ```rust
+//! use rpg::{PasswordArgs, build_char_set, generate_passwords};
+//! use rand::Rng;
+//!
+//! let args = PasswordArgs {
+//!     capitals_off: false,
+//!     numerals_off: false,
+//!     symbols_off: false,
+//!     exclude_chars: vec![],
+//!     include_chars: None,
+//!     min_capitals: None,
+//!     min_numerals: None,
+//!     min_symbols: None,
+//!     pattern: None,
+//!     length: 16,
+//!     password_count: 1,
+//! };
+//!
+//! let char_set = build_char_set(&args).unwrap();
+//! let mut rng = rand::rng();
+//! let passwords = generate_passwords(&char_set, 16, 1, None, None, None, None, &mut rng);
+//! ```
+
 use rand::Rng;
 use std::collections::HashSet;
 use std::fmt;
@@ -290,9 +327,9 @@ fn generate_password_from_pattern<R: Rng>(
     let symbols: Vec<u8> = char_set
         .iter()
         .filter(|&&b| {
-            (b < ASCII_LOWERCASE_START || b > ASCII_LOWERCASE_END)
-                && (b < ASCII_UPPERCASE_START || b > ASCII_UPPERCASE_END)
-                && (b < ASCII_NUMERAL_START || b > ASCII_NUMERAL_END)
+            !(ASCII_LOWERCASE_START..=ASCII_LOWERCASE_END).contains(&b)
+                && !(ASCII_UPPERCASE_START..=ASCII_UPPERCASE_END).contains(&b)
+                && !(ASCII_NUMERAL_START..=ASCII_NUMERAL_END).contains(&b)
         })
         .copied()
         .collect();
@@ -357,9 +394,9 @@ fn generate_password_with_minimums<R: Rng>(
     let symbols: Vec<u8> = char_set
         .iter()
         .filter(|&&b| {
-            (b < ASCII_LOWERCASE_START || b > ASCII_LOWERCASE_END)
-                && (b < ASCII_UPPERCASE_START || b > ASCII_UPPERCASE_END)
-                && (b < ASCII_NUMERAL_START || b > ASCII_NUMERAL_END)
+            !(ASCII_LOWERCASE_START..=ASCII_LOWERCASE_END).contains(&b)
+                && !(ASCII_UPPERCASE_START..=ASCII_UPPERCASE_END).contains(&b)
+                && !(ASCII_NUMERAL_START..=ASCII_NUMERAL_END).contains(&b)
         })
         .copied()
         .collect();

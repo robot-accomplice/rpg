@@ -1,1 +1,11 @@
 /target
+**/*.rs.bk
+*.pem
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+coverage/
+*.profraw

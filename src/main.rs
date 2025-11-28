@@ -193,10 +193,8 @@ fn main() {
         use clipboard::{ClipboardContext, ClipboardProvider};
         match ClipboardContext::new() {
             Ok(mut ctx) => {
-                if ctx.set_contents(passwords[0].clone()).is_ok() {
-                    if !args.quiet {
-                        eprintln!("Password copied to clipboard");
-                    }
+                if ctx.set_contents(passwords[0].clone()).is_ok() && !args.quiet {
+                    eprintln!("Password copied to clipboard");
                 }
             }
             Err(_) => {
