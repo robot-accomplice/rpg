@@ -1,0 +1,28 @@
+[package]
+name = "rpg"
+version = "1.0.0"
+edition = "2024"
+license = "MIT"
+authors = ["Jonathan Machen <jon.machen@robotaccomplice.com>"]
+description = "Rust Password Generator - A fast and customizable password generator"
+repository = "https://github.com/jmachen/rpg"
+keywords = ["password", "generator", "security", "cli", "random"]
+categories = ["command-line-utilities", "development-tools"]
+
+[[bin]]
+name = "rpg"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5.53", features = ["derive"] }
+rand = "0.9.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+clipboard = "0.5"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "password_generation"
+harness = false
