@@ -5,20 +5,29 @@ use rpg_util::{
 };
 
 const ASCII_ART: &str = r#"
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@#@@@@@@@@@@@@@@@@@@%#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@%.@@@@@@@@@@@@@@@@@@*:@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@@@@@@@@@@%%#%%%@@@@@@@@@@+.-=-*@@@@@@@@@@%-:-:-##@@@@@@@@@@@%@@@@@%@@@@@*==%@@
-@*++===-----:::---=+==++==-.    :=========::....---==========+==++++=+======. %@
-@#*+==-::..     ..::--=++===++=++:. ....:=--==--:::::::-----=++++++++=++=-.. :@@
-@@@@@@@@@@@%#####%@@@@@@@@@@@@@@@*##.:::#@@@@@@%-:*@@@@@@@@@@@@@@@@@@@@@@@%##@@@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%-:::%@@@@@@#:.*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%:.-@@@@@@@%+=%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@#:.:@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@###@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+                            :                  .:
+                           .%                  -#
+           ..:...          =%*+*-          .*#*#*::           .     .     -++.
+ -==+++*****###***+=++==++*%@@@@#+++++++++##%%%%***++++++++++=++====+=++++++%@.
+ :-=++*##%%@@@@@%%##**+==+++==+==#%@%%%%#+**++**#######*****+========+==+*%%@#
+           .:::::.               -::%###:      .*#-                       .::
+                                  ..*###.      :#%-
+                                    .#%*       .=+.
+                                    :#%#
+                                     :::
+                                     
 "#;
 
 const APP_NAME: &str = "RPG";
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+const BANNER_WIDTH: usize = 79; // Width of the ASCII art banner
+
+fn format_banner_with_caption() -> String {
+    let banner = include_str!("../banner.txt");
+    let caption = format!("RPG v{}", APP_VERSION);
+    format!("\n{}\n{:>width$}\n", banner.trim_end(), caption, width = BANNER_WIDTH)
+}
 
 /// RPG - Rust Password Generator
 #[derive(Parser, Debug)]
@@ -26,15 +35,8 @@ const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
     version,
     about = "Rust Password Generator - A fast and customizable password generator",
     long_about = None,
-    before_help = concat!("RPG v", env!("CARGO_PKG_VERSION"), "\n\n", include_str!("../banner.txt")),
-    after_help = "Examples:
-  rpg 5                               # Generate 5 passwords
-  rpg 10 --length 20                  # Generate 10 passwords of length 20
-  rpg 25 --table                      # Generate 25 passwords in table format
-  rpg 5 --capitals-off                # Generate without capital letters
-  rpg 5 --exclude-chars a-z,0-9       # Exclude ranges of characters
-  rpg 5 --exclude-chars a,b,c         # Exclude specific characters
-  rpg 5 --numerals-off --symbols-off  # Only alphabetic characters"
+    before_help = format_banner_with_caption(),
+    after_help = "\n\x1b[1mEXAMPLES:\x1b[0m\n\n  \x1b[36mBasic Usage:\x1b[0m\n    rpg 5                               # Generate 5 passwords\n    rpg 10 --length 20                  # Generate 10 passwords of length 20\n    rpg 25 --table                      # Generate 25 passwords in table format\n\n  \x1b[36mCharacter Customization:\x1b[0m\n    rpg 5 --capitals-off                # Generate without capital letters\n    rpg 5 --numerals-off --symbols-off  # Only alphabetic characters\n    rpg 5 --exclude-chars a-z,0-9       # Exclude ranges of characters\n    rpg 5 --exclude-chars a,b,c         # Exclude specific characters\n    rpg 5 --include-chars a-z,0-9       # Use only specified characters\n\n  \x1b[36mAdvanced Features:\x1b[0m\n    rpg 5 --pattern \"LLLNNNSSS\"         # Pattern-based generation\n    rpg 5 --min-capitals 2 --min-numerals 3  # Minimum requirements\n    rpg 5 --seed 12345                  # Reproducible passwords\n    rpg 1 --copy                        # Copy to clipboard\n    rpg 3 --format json                 # JSON output\n\nFor more information, visit: \x1b[4mhttps://github.com/robot-accomplice/rpg\x1b[0m"
 )]
 struct Args {
     /// Disable capital letters
@@ -108,7 +110,8 @@ fn main() {
 
     // Print ASCII art banner (unless in quiet mode or JSON format)
     if !args.quiet && args.format != "json" {
-        println!("{} v{}\n\n{}", APP_NAME, APP_VERSION, ASCII_ART.trim_start());
+        let banner = ASCII_ART.strip_prefix('\n').unwrap_or(ASCII_ART);
+        println!("\n{}\n{:>width$}\n", banner, format!("{} v{}", APP_NAME, APP_VERSION), width = BANNER_WIDTH);
     }
 
     // Parse and expand exclude character ranges
