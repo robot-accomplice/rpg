@@ -5,12 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.1] - 2025-01-XX
+## [1.0.1] - 2025-01-29
 
 ### Changed
 - Updated ASCII art banner design
 - Improved help output formatting with better organization and examples
 - Enhanced banner display with version caption below ASCII art
+- Refactored banner formatting for better consistency
+- Updated integration test filters for improved clarity
 
 ## [1.0.0] - 2024-11-28
 
