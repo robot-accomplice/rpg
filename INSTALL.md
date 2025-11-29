@@ -5,7 +5,7 @@
 Once published, install with:
 
 ```bash
-cargo install rpg-cli
+cargo install rpg-util
 ```
 
 This will install the `rpg` binary to `~/.cargo/bin/rpg` (or equivalent on your system).

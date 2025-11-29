@@ -1,5 +1,5 @@
 [package]
-name = "rpg-cli"
+name = "rpg-util"
 version = "1.0.0"
 edition = "2024"
 license = "MIT"
@@ -7,7 +7,7 @@ authors = ["Jonathan Machen <jon.machen@robotaccomplice.com>"]
 description = "Rust Password Generator - A fast and customizable password generator"
 repository = "https://github.com/robot-accomplice/rpg"
 readme = "README.md"
-documentation = "https://docs.rs/rpg-cli"
+documentation = "https://docs.rs/rpg-util"
 keywords = ["password", "generator", "security", "cli", "random"]
 categories = ["command-line-utilities", "development-tools"]
 exclude = [

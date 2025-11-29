@@ -13,7 +13,7 @@
 //! ## Example
 //!
 //! ```rust
-//! use rpg_cli::{GenerationParams, PasswordArgs, build_char_set, generate_passwords};
+//! use rpg_util::{GenerationParams, PasswordArgs, build_char_set, generate_passwords};
 //! use rand::Rng;
 //!
 //! let args = PasswordArgs {
@@ -32,7 +32,7 @@
 //!
 //! let char_set = build_char_set(&args).unwrap();
 //! let mut rng = rand::rng();
-//! let gen_params = rpg_cli::GenerationParams {
+//! let gen_params = rpg_util::GenerationParams {
 //!     length: 16,
 //!     count: 1,
 //!     min_capitals: None,
@@ -40,7 +40,7 @@
 //!     min_symbols: None,
 //!     pattern: None,
 //! };
-//! let passwords = rpg_cli::generate_passwords(&char_set, &gen_params, &mut rng);
+//! let passwords = rpg_util::generate_passwords(&char_set, &gen_params, &mut rng);
 //! ```
 
 use rand::Rng;

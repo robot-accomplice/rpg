@@ -1,6 +1,6 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use rand::{SeedableRng, rngs::StdRng};
-use rpg_cli::{GenerationParams, PasswordArgs, build_char_set, generate_passwords};
+use rpg_util::{GenerationParams, PasswordArgs, build_char_set, generate_passwords};
 
 fn bench_password_generation(c: &mut Criterion) {
     let args = PasswordArgs {

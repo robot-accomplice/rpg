@@ -1,5 +1,5 @@
 use clap::Parser;
-use rpg_cli::{
+use rpg_util::{
     GenerationParams, PasswordArgs, build_char_set, calculate_entropy, column_count,
     generate_passwords, parse_exclude_chars, parse_pattern, print_columns, validate_args,
 };
