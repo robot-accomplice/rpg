@@ -721,4 +721,501 @@ mod tests {
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Invalid range"));
     }
+
+    #[test]
+    fn test_calculate_entropy() {
+        // Test with different character set sizes and lengths
+        let entropy1 = calculate_entropy(26, 8); // lowercase only, 8 chars
+        assert!(entropy1 > 0.0);
+
+        let entropy2 = calculate_entropy(62, 16); // alphanumeric, 16 chars
+        assert!(entropy2 > entropy1);
+
+        let entropy3 = calculate_entropy(94, 20); // all printable ASCII, 20 chars
+        assert!(entropy3 > entropy2);
+
+        // Verify entropy increases with length
+        let entropy4 = calculate_entropy(62, 32);
+        assert!(entropy4 > entropy2);
+    }
+
+    #[test]
+    fn test_password_error_display() {
+        let err1 = PasswordError::InvalidLength;
+        assert!(
+            err1.to_string()
+                .contains("Password length must be greater than 0")
+        );
+
+        let err2 = PasswordError::InvalidLengthTooLong;
+        assert!(err2.to_string().contains("exceeds maximum of 10,000"));
+
+        let err3 = PasswordError::InvalidCount;
+        assert!(
+            err3.to_string()
+                .contains("Password count must be greater than 0")
+        );
+
+        let err4 = PasswordError::EmptyCharacterSet;
+        assert!(
+            err4.to_string()
+                .contains("All characters have been excluded")
+        );
+        assert!(err4.to_string().contains("Hint"));
+
+        let err5 = PasswordError::AllTypesDisabled;
+        assert!(
+            err5.to_string()
+                .contains("All character types are disabled")
+        );
+        assert!(err5.to_string().contains("Hint"));
+    }
+
+    #[test]
+    fn test_build_char_set_with_include_chars() {
+        let mut args = create_test_args(false, false, false, vec![]);
+        args.include_chars = Some(vec!['a', 'b', 'c', '1', '2', '!']);
+        let char_set = build_char_set(&args).unwrap();
+
+        assert_eq!(char_set.len(), 6);
+        assert!(char_set.contains(&b'a'));
+        assert!(char_set.contains(&b'b'));
+        assert!(char_set.contains(&b'c'));
+        assert!(char_set.contains(&b'1'));
+        assert!(char_set.contains(&b'2'));
+        assert!(char_set.contains(&b'!'));
+        // Should not include other characters
+        assert!(!char_set.contains(&b'd'));
+        assert!(!char_set.contains(&b'A'));
+    }
+
+    #[test]
+    fn test_build_char_set_with_include_chars_and_exclusions() {
+        let mut args = create_test_args(false, false, false, vec!['a']);
+        args.include_chars = Some(vec!['a', 'b', 'c']);
+        let char_set = build_char_set(&args).unwrap();
+
+        // 'a' should be excluded even though it's in include_chars
+        assert!(!char_set.contains(&b'a'));
+        assert!(char_set.contains(&b'b'));
+        assert!(char_set.contains(&b'c'));
+    }
+
+    #[test]
+    fn test_validate_args_too_long() {
+        let mut args = create_test_args(false, false, false, vec![]);
+        args.length = 10_001;
+        let result = validate_args(&args);
+        assert!(result.is_err());
+        assert!(matches!(
+            result.unwrap_err(),
+            PasswordError::InvalidLengthTooLong
+        ));
+    }
+
+    #[test]
+    fn test_validate_args_all_types_disabled_with_exclusions() {
+        // All types disabled and all lowercase excluded
+        // This should result in EmptyCharacterSet from build_char_set, which gets propagated
+        let mut exclude_all = Vec::new();
+        for c in b'a'..=b'z' {
+            exclude_all.push(c as char);
+        }
+        let args = create_test_args(true, true, true, exclude_all);
+        let result = validate_args(&args);
+        assert!(result.is_err());
+        // When all types are disabled and all chars excluded, build_char_set returns EmptyCharacterSet
+        // which gets propagated through the ? operator
+        let err = result.unwrap_err();
+        assert!(
+            matches!(err, PasswordError::EmptyCharacterSet)
+                || matches!(err, PasswordError::AllTypesDisabled)
+        );
+    }
+
+    #[test]
+    fn test_column_count_multiples() {
+        // Test multiples of 5
+        assert_eq!(column_count(25), 5);
+        assert_eq!(column_count(30), 5);
+        assert_eq!(column_count(35), 5);
+
+        // Test multiples of 4 (but not 5)
+        assert_eq!(column_count(28), 4);
+        assert_eq!(column_count(32), 4);
+
+        // Test multiples of 3 (but not 4 or 5)
+        assert_eq!(column_count(27), 3);
+        assert_eq!(column_count(33), 3);
+
+        // Test multiples of 2 (but not 3, 4, or 5)
+        assert_eq!(column_count(26), 2);
+        assert_eq!(column_count(34), 2);
+
+        // Test prime numbers (should default to 3)
+        assert_eq!(column_count(29), 3);
+        assert_eq!(column_count(31), 3);
+    }
+
+    #[test]
+    fn test_parse_pattern() {
+        // Test valid patterns
+        let pattern1 = parse_pattern("LLL").unwrap();
+        assert_eq!(pattern1.len(), 3);
+        assert!(matches!(pattern1[0], PatternChar::Lowercase));
+        assert!(matches!(pattern1[1], PatternChar::Lowercase));
+        assert!(matches!(pattern1[2], PatternChar::Lowercase));
+
+        let pattern2 = parse_pattern("UUNNSS").unwrap();
+        assert_eq!(pattern2.len(), 6);
+        assert!(matches!(pattern2[0], PatternChar::Uppercase));
+        assert!(matches!(pattern2[1], PatternChar::Uppercase));
+        assert!(matches!(pattern2[2], PatternChar::Numeric));
+        assert!(matches!(pattern2[3], PatternChar::Numeric));
+        assert!(matches!(pattern2[4], PatternChar::Symbol));
+        assert!(matches!(pattern2[5], PatternChar::Symbol));
+
+        // Test case insensitivity
+        let pattern3 = parse_pattern("lluunnss").unwrap();
+        assert_eq!(pattern3.len(), 8);
+        assert!(matches!(pattern3[0], PatternChar::Lowercase));
+        assert!(matches!(pattern3[2], PatternChar::Uppercase));
+        assert!(matches!(pattern3[4], PatternChar::Numeric));
+        assert!(matches!(pattern3[6], PatternChar::Symbol));
+
+        // Test invalid pattern
+        let result = parse_pattern("LLX");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Invalid pattern character"));
+
+        // Test empty pattern
+        let pattern4 = parse_pattern("").unwrap();
+        assert_eq!(pattern4.len(), 0);
+    }
+
+    #[test]
+    fn test_generate_password_from_pattern() {
+        use rand::{SeedableRng, rngs::StdRng};
+
+        let char_set = vec![
+            b'a', b'b', b'c', b'A', b'B', b'C', b'0', b'1', b'2', b'!', b'@', b'#',
+        ];
+        let pattern = vec![
+            PatternChar::Lowercase,
+            PatternChar::Uppercase,
+            PatternChar::Numeric,
+            PatternChar::Symbol,
+        ];
+
+        let mut rng = StdRng::seed_from_u64(42);
+        let password = generate_password_from_pattern(&char_set, &pattern, &mut rng);
+
+        assert_eq!(password.len(), 4);
+        // Verify each character type (we can't predict exact chars due to randomness,
+        // but we can verify the pattern was followed by checking character classes)
+        let chars: Vec<char> = password.chars().collect();
+        assert!(chars[0].is_ascii_lowercase());
+        assert!(chars[1].is_ascii_uppercase());
+        assert!(chars[2].is_ascii_digit());
+        assert!(!chars[3].is_alphanumeric());
+    }
+
+    #[test]
+    fn test_generate_password_from_pattern_empty_sets() {
+        use rand::{SeedableRng, rngs::StdRng};
+
+        // Character set with no uppercase, no numeric, no symbols
+        let char_set = vec![b'a', b'b', b'c'];
+        let pattern = vec![
+            PatternChar::Lowercase,
+            PatternChar::Uppercase, // Will fallback to char_set
+            PatternChar::Numeric,   // Will fallback to char_set
+            PatternChar::Symbol,    // Will fallback to char_set
+        ];
+
+        let mut rng = StdRng::seed_from_u64(123);
+        let password = generate_password_from_pattern(&char_set, &pattern, &mut rng);
+
+        assert_eq!(password.len(), 4);
+        // All should be lowercase since that's all that's available
+        for c in password.chars() {
+            assert!(c.is_ascii_lowercase());
+        }
+    }
+
+    #[test]
+    fn test_generate_password_from_pattern_empty_lowercase() {
+        use rand::{SeedableRng, rngs::StdRng};
+
+        // Character set with no lowercase (only uppercase, numeric, symbols)
+        let char_set = vec![b'A', b'B', b'0', b'1', b'!', b'@'];
+        let pattern = vec![PatternChar::Lowercase]; // Will fallback to char_set
+
+        let mut rng = StdRng::seed_from_u64(456);
+        let password = generate_password_from_pattern(&char_set, &pattern, &mut rng);
+
+        assert_eq!(password.len(), 1);
+        // Should fallback to any character from char_set
+        assert!(char_set.contains(&(password.chars().next().unwrap() as u8)));
+    }
+
+    #[test]
+    fn test_generate_password_from_pattern_empty_uppercase() {
+        use rand::{SeedableRng, rngs::StdRng};
+
+        // Character set with no uppercase
+        let char_set = vec![b'a', b'b', b'0', b'1', b'!', b'@'];
+        let pattern = vec![PatternChar::Uppercase]; // Will fallback to char_set
+
+        let mut rng = StdRng::seed_from_u64(789);
+        let password = generate_password_from_pattern(&char_set, &pattern, &mut rng);
+
+        assert_eq!(password.len(), 1);
+        assert!(char_set.contains(&(password.chars().next().unwrap() as u8)));
+    }
+
+    #[test]
+    fn test_generate_password_from_pattern_empty_numeric() {
+        use rand::{SeedableRng, rngs::StdRng};
+
+        // Character set with no numeric
+        let char_set = vec![b'a', b'b', b'A', b'B', b'!', b'@'];
+        let pattern = vec![PatternChar::Numeric]; // Will fallback to char_set
+
+        let mut rng = StdRng::seed_from_u64(1011);
+        let password = generate_password_from_pattern(&char_set, &pattern, &mut rng);
+
+        assert_eq!(password.len(), 1);
+        assert!(char_set.contains(&(password.chars().next().unwrap() as u8)));
+    }
+
+    #[test]
+    fn test_generate_password_from_pattern_empty_symbols() {
+        use rand::{SeedableRng, rngs::StdRng};
+
+        // Character set with no symbols
+        let char_set = vec![b'a', b'b', b'A', b'B', b'0', b'1'];
+        let pattern = vec![PatternChar::Symbol]; // Will fallback to char_set
+
+        let mut rng = StdRng::seed_from_u64(1213);
+        let password = generate_password_from_pattern(&char_set, &pattern, &mut rng);
+
+        assert_eq!(password.len(), 1);
+        assert!(char_set.contains(&(password.chars().next().unwrap() as u8)));
+    }
+
+    #[test]
+    fn test_generate_password_with_minimums() {
+        use rand::{SeedableRng, rngs::StdRng};
+
+        let char_set = vec![
+            b'a', b'b', b'c', // lowercase
+            b'A', b'B', b'C', // uppercase
+            b'0', b'1', b'2', // numeric
+            b'!', b'@', b'#', // symbols
+        ];
+
+        let mut rng = StdRng::seed_from_u64(456);
+        let password =
+            generate_password_with_minimums(&char_set, 10, Some(2), Some(2), Some(2), &mut rng);
+
+        assert_eq!(password.len(), 10);
+
+        // Count character types
+        let mut capitals = 0;
+        let mut numerals = 0;
+        let mut symbols = 0;
+
+        for c in password.chars() {
+            if c.is_ascii_uppercase() {
+                capitals += 1;
+            } else if c.is_ascii_digit() {
+                numerals += 1;
+            } else if !c.is_alphanumeric() {
+                symbols += 1;
+            }
+        }
+
+        assert!(capitals >= 2);
+        assert!(numerals >= 2);
+        assert!(symbols >= 2);
+    }
+
+    #[test]
+    fn test_generate_password_with_minimums_empty_sets() {
+        use rand::{SeedableRng, rngs::StdRng};
+
+        // Only lowercase available
+        let char_set = vec![b'a', b'b', b'c'];
+
+        let mut rng = StdRng::seed_from_u64(789);
+        let password =
+            generate_password_with_minimums(&char_set, 5, Some(2), Some(2), Some(2), &mut rng);
+
+        assert_eq!(password.len(), 5);
+        // All should be lowercase since that's all available
+        for c in password.chars() {
+            assert!(c.is_ascii_lowercase());
+        }
+    }
+
+    #[test]
+    fn test_generate_password_with_minimums_no_minimums() {
+        use rand::{SeedableRng, rngs::StdRng};
+
+        let char_set = vec![b'a', b'b', b'c', b'A', b'B', b'0', b'1', b'!', b'@'];
+
+        let mut rng = StdRng::seed_from_u64(101);
+        let password = generate_password_with_minimums(&char_set, 8, None, None, None, &mut rng);
+
+        assert_eq!(password.len(), 8);
+    }
+
+    #[test]
+    fn test_generate_passwords() {
+        use rand::{SeedableRng, rngs::StdRng};
+
+        let char_set = vec![b'a', b'b', b'c', b'1', b'2', b'3'];
+        let params = GenerationParams {
+            length: 5,
+            count: 3,
+            min_capitals: None,
+            min_numerals: None,
+            min_symbols: None,
+            pattern: None,
+        };
+
+        let mut rng = StdRng::seed_from_u64(202);
+        let passwords = generate_passwords(&char_set, &params, &mut rng);
+
+        assert_eq!(passwords.len(), 3);
+        for pass in &passwords {
+            assert_eq!(pass.len(), 5);
+        }
+    }
+
+    #[test]
+    fn test_generate_passwords_with_pattern() {
+        use rand::{SeedableRng, rngs::StdRng};
+
+        let char_set = vec![b'a', b'b', b'A', b'B', b'0', b'1', b'!', b'@'];
+        let pattern = vec![
+            PatternChar::Lowercase,
+            PatternChar::Uppercase,
+            PatternChar::Numeric,
+            PatternChar::Symbol,
+        ];
+        let params = GenerationParams {
+            length: 4,
+            count: 2,
+            min_capitals: None,
+            min_numerals: None,
+            min_symbols: None,
+            pattern: Some(pattern),
+        };
+
+        let mut rng = StdRng::seed_from_u64(303);
+        let passwords = generate_passwords(&char_set, &params, &mut rng);
+
+        assert_eq!(passwords.len(), 2);
+        for pass in &passwords {
+            assert_eq!(pass.len(), 4);
+        }
+    }
+
+    #[test]
+    fn test_generate_passwords_with_minimums() {
+        use rand::{SeedableRng, rngs::StdRng};
+
+        let char_set = vec![
+            b'a', b'b', b'c', b'A', b'B', b'C', b'0', b'1', b'2', b'!', b'@', b'#',
+        ];
+        let params = GenerationParams {
+            length: 8,
+            count: 2,
+            min_capitals: Some(1),
+            min_numerals: Some(1),
+            min_symbols: Some(1),
+            pattern: None,
+        };
+
+        let mut rng = StdRng::seed_from_u64(404);
+        let passwords = generate_passwords(&char_set, &params, &mut rng);
+
+        assert_eq!(passwords.len(), 2);
+        for pass in &passwords {
+            assert_eq!(pass.len(), 8);
+            // Verify minimums are met
+            let mut has_capital = false;
+            let mut has_numeral = false;
+            let mut has_symbol = false;
+            for c in pass.chars() {
+                if c.is_ascii_uppercase() {
+                    has_capital = true;
+                } else if c.is_ascii_digit() {
+                    has_numeral = true;
+                } else if !c.is_alphanumeric() {
+                    has_symbol = true;
+                }
+            }
+            assert!(has_capital);
+            assert!(has_numeral);
+            assert!(has_symbol);
+        }
+    }
+
+    #[test]
+    fn test_print_columns_single_column() {
+        let passwords = vec![
+            "pass1".to_string(),
+            "pass2".to_string(),
+            "pass3".to_string(),
+        ];
+        // We can't easily test print! without capturing stdout, so we'll test the logic
+        // by verifying the function doesn't panic
+        print_columns(passwords.clone(), 1, false);
+        print_columns(passwords, 1, true);
+    }
+
+    #[test]
+    fn test_print_columns_multiple_columns() {
+        let passwords: Vec<String> = vec![
+            "short".to_string(),
+            "verylongpassword".to_string(),
+            "medium".to_string(),
+            "x".to_string(),
+        ];
+        // Test that it doesn't panic
+        print_columns(passwords.clone(), 2, false);
+        print_columns(passwords.clone(), 2, true);
+        print_columns(passwords.clone(), 3, false);
+        print_columns(passwords, 4, false);
+    }
+
+    #[test]
+    fn test_print_columns_incomplete_row() {
+        let passwords = vec![
+            "a".to_string(),
+            "b".to_string(),
+            "c".to_string(),
+            "d".to_string(),
+            "e".to_string(), // 5 passwords, 3 columns = incomplete last row
+        ];
+        // Should not panic with incomplete row
+        print_columns(passwords, 3, false);
+    }
+
+    #[test]
+    fn test_print_columns_empty() {
+        let passwords: Vec<String> = vec![];
+        print_columns(passwords.clone(), 1, false);
+        print_columns(passwords, 3, true);
+    }
+
+    #[test]
+    fn test_print_columns_single_password() {
+        let passwords = vec!["password123".to_string()];
+        print_columns(passwords.clone(), 1, false);
+        print_columns(passwords, 3, false);
+    }
 }
