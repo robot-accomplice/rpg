@@ -16,8 +16,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org/)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/robot-accomplice/rpg)
-[![Crates.io](https://img.shields.io/crates/v/rpg.svg)](https://crates.io/crates/rpg)
-[![Docs.rs](https://docs.rs/rpg/badge.svg)](https://docs.rs/rpg)
+[![Crates.io](https://img.shields.io/crates/v/rpg-cli.svg)](https://crates.io/crates/rpg-cli)
+[![Docs.rs](https://docs.rs/rpg-cli/badge.svg)](https://docs.rs/rpg-cli)
 [![codecov](https://codecov.io/gh/robot-accomplice/rpg/branch/main/graph/badge.svg)](https://codecov.io/gh/robot-accomplice/rpg)
 
 
@@ -45,7 +45,7 @@ A fast, secure, and customizable command-line password generator written in Rust
 ### From Crates.io
 
 ```bash
-cargo install rpg
+cargo install rpg-cli
 ```
 
 ### From Source
@@ -200,11 +200,11 @@ RPG can also be used as a library in your Rust projects:
 
 ```toml
 [dependencies]
-rpg = "1.0.0"
+rpg-cli = "1.0.0"
 ```
 
 ```rust
-use rpg::{GenerationParams, PasswordArgs, build_char_set, generate_passwords, parse_pattern};
+use rpg_cli::{GenerationParams, PasswordArgs, build_char_set, generate_passwords, parse_pattern};
 use rand::Rng;
 
 let args = PasswordArgs {
