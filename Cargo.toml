@@ -8,7 +8,7 @@ description = "Rust Password Generator - A fast and customizable password genera
 repository = "https://github.com/robot-accomplice/rpg"
 readme = "README.md"
 documentation = "https://docs.rs/rpg"
-keywords = ["password", "generator", "security", "cli", "random", "cryptography"]
+keywords = ["password", "generator", "security", "cli", "random"]
 categories = ["command-line-utilities", "development-tools"]
 exclude = [
     "target/",
