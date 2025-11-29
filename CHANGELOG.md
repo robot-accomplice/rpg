@@ -27,7 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Maximum password length validation (10,000 characters)
 - Improved error messages with helpful hints and suggestions
 - MIT License
-- Complete documentation (README, INSTALL, PUBLISHING guides)
+- Complete documentation (README, INSTALL, PUBLISHING, PRE_COMMIT_HOOKS guides)
+- Man page (rpg.1) for Unix/Linux systems
 - GitHub Actions CI/CD pipeline
 - Code coverage setup with Codecov
 

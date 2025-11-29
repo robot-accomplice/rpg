@@ -13,3 +13,4 @@ coverage/
 !verify.sh
 PREPUBLISH_CHECKLIST.md
 PUBLISHING.md
+PRE_COMMIT_HOOKS.md

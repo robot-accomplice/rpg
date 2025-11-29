@@ -21,6 +21,8 @@ exclude = [
     "tests/",
     "PUBLISHING.md",
     "INSTALL.md",
+    "PRE_COMMIT_HOOKS.md",
+    "rpg.1",
 ]
 
 [[bin]]

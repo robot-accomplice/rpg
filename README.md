@@ -292,7 +292,9 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ### Pre-commit Hooks
 
-Optional pre-commit hooks are available. Install with:
+Optional pre-commit hooks are available to ensure code quality. See [PRE_COMMIT_HOOKS.md](PRE_COMMIT_HOOKS.md) for detailed documentation.
+
+Quick setup:
 
 ```bash
 pip install pre-commit

@@ -1,0 +1,143 @@
+.TH RPG 1 "November 2025" "rpg 1.0.0" "User Commands"
+.SH NAME
+rpg \- Rust Password Generator
+.SH SYNOPSIS
+.B rpg
+[\fIOPTIONS\fR] \fIPASSWORD_COUNT\fR
+.SH DESCRIPTION
+\fBrpg\fR is a fast, secure, and customizable command-line password generator
+written in Rust. It generates cryptographically secure passwords with
+customizable character sets, exclusion rules, and output formats.
+.SH OPTIONS
+.TP
+\fB\-c\fR, \fB\-\-capitals\-off\fR
+Disable capital letters in generated passwords.
+.TP
+\fB\-n\fR, \fB\-\-numerals\-off\fR
+Disable numerals in generated passwords.
+.TP
+\fB\-s\fR, \fB\-\-symbols\-off\fR
+Disable symbols in generated passwords.
+.TP
+\fB\-e\fR, \fB\-\-exclude\-chars\fR \fICHARS\fR
+Exclude specific characters or ranges (e.g., \fIa\-z\fR, \fI0\-9\fR).
+Can be specified multiple times and supports comma-separated values.
+.TP
+\fB\-\-include\-chars\fR \fICHARS\fR
+Include only specific characters or ranges (overrides character type flags).
+.TP
+\fB\-\-min\-capitals\fR \fIN\fR
+Minimum number of capital letters required in each password.
+.TP
+\fB\-\-min\-numerals\fR \fIN\fR
+Minimum number of numerals required in each password.
+.TP
+\fB\-\-min\-symbols\fR \fIN\fR
+Minimum number of symbols required in each password.
+.TP
+\fB\-l\fR, \fB\-\-length\fR \fILENGTH\fR
+Length of each password (default: 16, max: 10,000).
+.TP
+\fB\-t\fR, \fB\-\-table\fR
+Display passwords in a formatted table.
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Suppress banner and header output (quiet mode).
+.TP
+\fB\-\-seed\fR \fISEED\fR
+Seed for random number generator (for reproducible passwords).
+.TP
+\fB\-\-format\fR \fIFORMAT\fR
+Output format: "text" (default) or "json".
+.TP
+\fB\-\-copy\fR
+Copy first password to clipboard.
+.TP
+\fB\-\-pattern\fR \fIPATTERN\fR
+Generate passwords from a pattern:
+.RS
+.IP \(bu 2
+\fBL\fR or \fBl\fR = lowercase letter
+.IP \(bu 2
+\fBU\fR or \fBu\fR = uppercase letter
+.IP \(bu 2
+\fBN\fR or \fBn\fR = numeric digit
+.IP \(bu 2
+\fBS\fR or \fBs\fR = symbol
+.RE
+.IP
+Example: "LLLNNNSSS" generates 3 lowercase, 3 numeric, 3 symbols.
+.SH ARGUMENTS
+.TP
+\fIPASSWORD_COUNT\fR
+Number of passwords to generate (required).
+.SH EXAMPLES
+Generate 5 passwords with default settings:
+.RS
+.PP
+\fBrpg 5\fR
+.RE
+.PP
+Generate 10 passwords of length 20:
+.RS
+.PP
+\fBrpg 10 \-\-length 20\fR
+.RE
+.PP
+Generate passwords excluding specific characters:
+.RS
+.PP
+\fBrpg 5 \-\-exclude\-chars a\-z,0\-9\fR
+.RE
+.PP
+Generate passwords with minimum requirements:
+.RS
+.PP
+\fBrpg 5 \-\-min\-capitals 2 \-\-min\-numerals 3\fR
+.RE
+.PP
+Generate passwords from a pattern:
+.RS
+.PP
+\fBrpg 3 \-\-pattern "LLLNNNSSS"\fR
+.RE
+.PP
+Output in JSON format:
+.RS
+.PP
+\fBrpg 3 \-\-format json\fR
+.RE
+.PP
+Generate reproducible passwords with seed:
+.RS
+.PP
+\fBrpg 5 \-\-seed 12345\fR
+.RE
+.SH CHARACTER SETS
+The generator uses the following character ranges:
+.TP
+Lowercase letters
+\fIa\-z\fR (always included)
+.TP
+Uppercase letters
+\fIA\-Z\fR (can be disabled with \fB\-\-capitals\-off\fR)
+.TP
+Numerals
+\fI0\-9\fR (can be disabled with \fB\-\-numerals\-off\fR)
+.TP
+Symbols
+All ASCII printable symbols (can be disabled with \fB\-\-symbols\-off\fR):
+\fI!"#$%&'()*+,\-./:;<=>?@[\\]^_`{|}~\fR
+.SH EXIT STATUS
+\fBrpg\fR exits with status 0 on success, and non-zero on error.
+.SH SEE ALSO
+.BR cargo (1)
+.PP
+Project homepage: <https://github.com/robot-accomplice/rpg>
+.PP
+Crates.io: <https://crates.io/crates/rpg>
+.SH AUTHORS
+Jonathan Machen <jon.machen@robotaccomplice.com>
+.SH LICENSE
+MIT License - see LICENSE file for details.
+

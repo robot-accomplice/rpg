@@ -42,6 +42,25 @@ cargo install --path .
 cp target/release/rpg ~/.cargo/bin/
 ```
 
+### Install Man Page (Optional)
+
+For Unix/Linux systems, you can install the man page:
+
+```bash
+# Install to system man directory (requires sudo)
+sudo cp rpg.1 /usr/local/share/man/man1/
+sudo mandb  # Update man database
+
+# Or install to user directory
+mkdir -p ~/.local/share/man/man1
+cp rpg.1 ~/.local/share/man/man1/
+```
+
+After installation, you can view the manual with:
+```bash
+man rpg
+```
+
 ## Verify Installation
 
 ```bash
