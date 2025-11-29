@@ -25,12 +25,20 @@ A fast, secure, and customizable command-line password generator written in Rust
 
 ## Features
 
+- **ASCII art banner**: Displays a stylized RPG launcher banner on execution
 - **Customizable character sets**: Control which types of characters to include (lowercase, uppercase, numerals, symbols)
-- **Character exclusion**: Exclude specific characters from generated passwords
+- **Character exclusion**: Exclude specific characters or ranges from generated passwords
+- **Character inclusion**: Restrict passwords to only specific character sets
+- **Pattern-based generation**: Generate passwords from patterns (e.g., `LLLNNNSSS` for 3 lowercase, 3 numeric, 3 symbols)
+- **Minimum requirements**: Enforce minimum counts of capitals, numerals, or symbols
+- **Reproducible passwords**: Use seeds to generate the same passwords repeatedly
+- **Multiple output formats**: Text (default) or JSON with entropy information
+- **Clipboard integration**: Copy passwords directly to clipboard
 - **Table output**: Display multiple passwords in a formatted table
+- **Quiet mode**: Suppress banner and headers for script-friendly output
 - **Uniform distribution**: Passwords are generated with uniform character distribution
 - **Fast and efficient**: Pre-allocated memory and optimized character set building
-- **Well-tested**: Comprehensive unit tests for all core functionality
+- **Well-tested**: Comprehensive unit tests (17+) and integration tests
 
 ## Installation
 
@@ -72,10 +80,11 @@ rpg 5
 - `--min-numerals <N>`: Minimum number of numerals required
 - `--min-symbols <N>`: Minimum number of symbols required
 - `-t, --table`: Display passwords in table format
-- `-q, --quiet`: Suppress header output
+- `-q, --quiet`: Suppress banner and header output
 - `--seed <SEED>`: Seed for reproducible password generation
 - `--format <FORMAT>`: Output format: "text" (default) or "json"
 - `--copy`: Copy first password to clipboard
+- `--pattern <PATTERN>`: Generate passwords from a pattern (L=lowercase, U=uppercase, N=numeric, S=symbol)
 
 ### Examples
 
@@ -183,14 +192,88 @@ The generator validates inputs and provides clear error messages:
 - O(1) character exclusion checking using HashSet
 - Single character set build for all passwords
 - Optimized random sampling
+- Benchmarked with criterion for performance tracking
+
+## Library Usage
+
+RPG can also be used as a library in your Rust projects:
+
+```toml
+[dependencies]
+rpg = "1.0.0"
+```
+
+```rust
+use rpg::{GenerationParams, PasswordArgs, build_char_set, generate_passwords, parse_pattern};
+use rand::Rng;
+
+let args = PasswordArgs {
+    capitals_off: false,
+    numerals_off: false,
+    symbols_off: false,
+    exclude_chars: vec![],
+    include_chars: None,
+    min_capitals: None,
+    min_numerals: None,
+    min_symbols: None,
+    pattern: None,
+    length: 16,
+    password_count: 1,
+};
+
+let char_set = build_char_set(&args)?;
+let mut rng = rand::rng();
+
+let gen_params = GenerationParams {
+    length: 16,
+    count: 1,
+    min_capitals: None,
+    min_numerals: None,
+    min_symbols: None,
+    pattern: None,
+};
+let passwords = generate_passwords(&char_set, &gen_params, &mut rng);
+
+// Or use pattern-based generation
+let pattern = parse_pattern("LLLNNNSSS")?;
+let gen_params = GenerationParams {
+    length: 9,
+    count: 1,
+    min_capitals: None,
+    min_numerals: None,
+    min_symbols: None,
+    pattern: Some(pattern),
+};
+let passwords = generate_passwords(&char_set, &gen_params, &mut rng);
+```
 
 ## Testing
 
 Run the test suite:
 
 ```bash
+# Run all tests
 cargo test
+
+# Run only unit tests
+cargo test --lib
+
+# Run only integration tests
+cargo test --test integration_test
+
+# Run with output
+cargo test -- --nocapture
 ```
+
+## Benchmarks
+
+Run performance benchmarks:
+
+```bash
+cargo bench
+```
+
+This will generate HTML reports in `target/criterion/`.
 
 ## License
 

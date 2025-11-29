@@ -1,6 +1,6 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use rand::{SeedableRng, rngs::StdRng};
-use rpg::{PasswordArgs, build_char_set, generate_passwords};
+use rpg::{GenerationParams, PasswordArgs, build_char_set, generate_passwords};
 
 fn bench_password_generation(c: &mut Criterion) {
     let args = PasswordArgs {
@@ -21,48 +21,39 @@ fn bench_password_generation(c: &mut Criterion) {
     let mut rng = StdRng::seed_from_u64(42);
 
     c.bench_function("generate_password_16", |b| {
-        b.iter(|| {
-            generate_passwords(
-                black_box(&char_set),
-                black_box(16),
-                black_box(1),
-                None,
-                None,
-                None,
-                None,
-                &mut rng,
-            )
-        })
+        let params = GenerationParams {
+            length: 16,
+            count: 1,
+            min_capitals: None,
+            min_numerals: None,
+            min_symbols: None,
+            pattern: None,
+        };
+        b.iter(|| generate_passwords(black_box(&char_set), black_box(&params), &mut rng))
     });
 
     c.bench_function("generate_password_64", |b| {
-        b.iter(|| {
-            generate_passwords(
-                black_box(&char_set),
-                black_box(64),
-                black_box(1),
-                None,
-                None,
-                None,
-                None,
-                &mut rng,
-            )
-        })
+        let params = GenerationParams {
+            length: 64,
+            count: 1,
+            min_capitals: None,
+            min_numerals: None,
+            min_symbols: None,
+            pattern: None,
+        };
+        b.iter(|| generate_passwords(black_box(&char_set), black_box(&params), &mut rng))
     });
 
     c.bench_function("generate_100_passwords", |b| {
-        b.iter(|| {
-            generate_passwords(
-                black_box(&char_set),
-                black_box(16),
-                black_box(100),
-                None,
-                None,
-                None,
-                None,
-                &mut rng,
-            )
-        })
+        let params = GenerationParams {
+            length: 16,
+            count: 100,
+            min_capitals: None,
+            min_numerals: None,
+            min_symbols: None,
+            pattern: None,
+        };
+        b.iter(|| generate_passwords(black_box(&char_set), black_box(&params), &mut rng))
     });
 }
 

@@ -9,3 +9,7 @@
 .DS_Store
 coverage/
 *.profraw
+# Keep verify.sh in repo
+!verify.sh
+PREPUBLISH_CHECKLIST.md
+PUBLISHING.md

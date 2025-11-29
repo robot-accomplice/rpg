@@ -1,7 +1,7 @@
 use clap::Parser;
 use rpg::{
-    PasswordArgs, build_char_set, calculate_entropy, column_count, generate_passwords,
-    parse_exclude_chars, parse_pattern, print_columns, validate_args,
+    GenerationParams, PasswordArgs, build_char_set, calculate_entropy, column_count,
+    generate_passwords, parse_exclude_chars, parse_pattern, print_columns, validate_args,
 };
 
 const ASCII_ART: &str = r#"
@@ -178,32 +178,24 @@ fn main() {
         }
     };
 
+    // Create generation parameters
+    let gen_params = GenerationParams {
+        length: effective_length,
+        count: args.password_count,
+        min_capitals: args.min_capitals,
+        min_numerals: args.min_numerals,
+        min_symbols: args.min_symbols,
+        pattern: pattern.clone(),
+    };
+
     // Generate passwords with optional seed
     let passwords = if let Some(seed) = args.seed {
         use rand::{SeedableRng, rngs::StdRng};
         let mut rng = StdRng::seed_from_u64(seed);
-        generate_passwords(
-            &char_set,
-            effective_length,
-            args.password_count,
-            args.min_capitals,
-            args.min_numerals,
-            args.min_symbols,
-            pattern.as_deref(),
-            &mut rng,
-        )
+        generate_passwords(&char_set, &gen_params, &mut rng)
     } else {
         let mut rng = rand::rng();
-        generate_passwords(
-            &char_set,
-            effective_length,
-            args.password_count,
-            args.min_capitals,
-            args.min_numerals,
-            args.min_symbols,
-            pattern.as_deref(),
-            &mut rng,
-        )
+        generate_passwords(&char_set, &gen_params, &mut rng)
     };
 
     // Handle copy to clipboard

@@ -13,7 +13,7 @@
 //! ## Example
 //!
 //! ```rust
-//! use rpg::{PasswordArgs, build_char_set, generate_passwords};
+//! use rpg::{GenerationParams, PasswordArgs, build_char_set, generate_passwords};
 //! use rand::Rng;
 //!
 //! let args = PasswordArgs {
@@ -32,7 +32,15 @@
 //!
 //! let char_set = build_char_set(&args).unwrap();
 //! let mut rng = rand::rng();
-//! let passwords = generate_passwords(&char_set, 16, 1, None, None, None, None, &mut rng);
+//! let gen_params = rpg::GenerationParams {
+//!     length: 16,
+//!     count: 1,
+//!     min_capitals: None,
+//!     min_numerals: None,
+//!     min_symbols: None,
+//!     pattern: None,
+//! };
+//! let passwords = rpg::generate_passwords(&char_set, &gen_params, &mut rng);
 //! ```
 
 use rand::Rng;
@@ -112,6 +120,17 @@ pub enum PatternChar {
     Uppercase,
     Numeric,
     Symbol,
+}
+
+/// Parameters for password generation
+#[derive(Debug, Clone)]
+pub struct GenerationParams {
+    pub length: u32,
+    pub count: u32,
+    pub min_capitals: Option<u32>,
+    pub min_numerals: Option<u32>,
+    pub min_symbols: Option<u32>,
+    pub pattern: Option<Vec<PatternChar>>,
 }
 
 /// Arguments structure for password generation
@@ -447,26 +466,21 @@ fn generate_password_with_minimums<R: Rng>(
 /// Generates passwords using the provided character set and RNG
 pub fn generate_passwords<R: Rng>(
     char_set: &[u8],
-    length: u32,
-    count: u32,
-    min_capitals: Option<u32>,
-    min_numerals: Option<u32>,
-    min_symbols: Option<u32>,
-    pattern: Option<&[PatternChar]>,
+    params: &GenerationParams,
     rng: &mut R,
 ) -> Vec<String> {
-    let mut passwords = Vec::with_capacity(count as usize);
+    let mut passwords = Vec::with_capacity(params.count as usize);
 
-    for _ in 0..count {
-        let pass = if let Some(pat) = pattern {
+    for _ in 0..params.count {
+        let pass = if let Some(ref pat) = params.pattern {
             generate_password_from_pattern(char_set, pat, rng)
         } else {
             generate_password_with_minimums(
                 char_set,
-                length,
-                min_capitals,
-                min_numerals,
-                min_symbols,
+                params.length,
+                params.min_capitals,
+                params.min_numerals,
+                params.min_symbols,
                 rng,
             )
         };

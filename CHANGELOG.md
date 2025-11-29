@@ -9,23 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial release of RPG (Rust Password Generator)
+- ASCII art banner displayed on program execution
 - Customizable character sets (lowercase, uppercase, numerals, symbols)
 - Character exclusion with range support (e.g., `a-z`, `0-9`)
-- Character inclusion option (`--include-chars`)
+- Character inclusion option (`--include-chars`) to restrict to specific character sets
 - Minimum character type requirements (`--min-capitals`, `--min-numerals`, `--min-symbols`)
+- Pattern-based password generation (`--pattern`) with L (lowercase), U (uppercase), N (numeric), S (symbol)
 - Table output format (`--table`)
-- Quiet mode (`--quiet`)
+- Quiet mode (`--quiet`) to suppress banner and headers
 - Seed support for reproducible passwords (`--seed`)
-- JSON output format (`--format json`)
+- JSON output format (`--format json`) with entropy information
 - Copy to clipboard functionality (`--copy`)
-- Password entropy calculation
-- Comprehensive unit tests
-- Integration tests
-- Performance benchmarks
+- Password entropy calculation (displayed in JSON output)
+- Comprehensive unit tests (17+ tests)
+- Integration tests for CLI workflows
+- Performance benchmarks using criterion
 - Maximum password length validation (10,000 characters)
-- Improved error messages with helpful hints
+- Improved error messages with helpful hints and suggestions
 - MIT License
-- Complete documentation
+- Complete documentation (README, INSTALL, PUBLISHING guides)
+- GitHub Actions CI/CD pipeline
+- Code coverage setup with Codecov
 
 ### Features
 - Fast and efficient password generation
