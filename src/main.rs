@@ -26,7 +26,12 @@ const BANNER_WIDTH: usize = 79; // Width of the ASCII art banner
 fn format_banner_with_caption() -> String {
     let banner = include_str!("../banner.txt");
     let caption = format!("RPG v{}", APP_VERSION);
-    format!("\n{}\n{:>width$}\n", banner.trim_end(), caption, width = BANNER_WIDTH)
+    format!(
+        "\n{}\n{:>width$}\n",
+        banner.trim_end(),
+        caption,
+        width = BANNER_WIDTH
+    )
 }
 
 /// RPG - Rust Password Generator
@@ -111,7 +116,12 @@ fn main() {
     // Print ASCII art banner (unless in quiet mode or JSON format)
     if !args.quiet && args.format != "json" {
         let banner = ASCII_ART.strip_prefix('\n').unwrap_or(ASCII_ART);
-        println!("\n{}\n{:>width$}\n", banner, format!("{} v{}", APP_NAME, APP_VERSION), width = BANNER_WIDTH);
+        println!(
+            "\n{}\n{:>width$}\n",
+            banner,
+            format!("{} v{}", APP_NAME, APP_VERSION),
+            width = BANNER_WIDTH
+        );
     }
 
     // Parse and expand exclude character ranges

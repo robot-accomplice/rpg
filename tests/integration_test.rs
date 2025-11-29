@@ -30,7 +30,12 @@ fn test_length_option() {
     let stdout = String::from_utf8(output.stdout).unwrap();
     let passwords: Vec<&str> = stdout
         .lines()
-        .filter(|l| !l.is_empty() && !l.contains("Printing") && !l.contains("@"))
+        .filter(|l| {
+            !l.is_empty()
+                && !l.contains("Printing")
+                && !l.contains("RPG v")
+                && !(l.chars().filter(|&c| c == '@').count() > 5) // Filter banner lines (many @ chars)
+        })
         .collect();
 
     assert!(
@@ -68,11 +73,21 @@ fn test_seed_reproducibility() {
 
     let pass1: Vec<&str> = stdout1
         .lines()
-        .filter(|l| !l.is_empty() && !l.contains("Printing") && !l.contains("@"))
+        .filter(|l| {
+            !l.is_empty()
+                && !l.contains("Printing")
+                && !l.contains("RPG v")
+                && !(l.chars().filter(|&c| c == '@').count() > 5) // Filter banner lines (many @ chars)
+        })
         .collect();
     let pass2: Vec<&str> = stdout2
         .lines()
-        .filter(|l| !l.is_empty() && !l.contains("Printing") && !l.contains("@"))
+        .filter(|l| {
+            !l.is_empty()
+                && !l.contains("Printing")
+                && !l.contains("RPG v")
+                && !(l.chars().filter(|&c| c == '@').count() > 5) // Filter banner lines (many @ chars)
+        })
         .collect();
 
     assert_eq!(pass1, pass2);
