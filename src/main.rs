@@ -17,19 +17,23 @@ const ASCII_ART: &str = r#"
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@###@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 "#;
 
+const APP_NAME: &str = "RPG";
+const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 /// RPG - Rust Password Generator
 #[derive(Parser, Debug)]
 #[command(
     version,
     about = "Rust Password Generator - A fast and customizable password generator",
     long_about = None,
+    before_help = concat!("RPG v", env!("CARGO_PKG_VERSION"), "\n\n", include_str!("../banner.txt")),
     after_help = "Examples:
   rpg 5                               # Generate 5 passwords
   rpg 10 --length 20                  # Generate 10 passwords of length 20
   rpg 25 --table                      # Generate 25 passwords in table format
   rpg 5 --capitals-off                # Generate without capital letters
-  rpg 5 --exclude-chars a-z,0-9      # Exclude ranges of characters
-  rpg 5 --exclude-chars a,b,c        # Exclude specific characters
+  rpg 5 --exclude-chars a-z,0-9       # Exclude ranges of characters
+  rpg 5 --exclude-chars a,b,c         # Exclude specific characters
   rpg 5 --numerals-off --symbols-off  # Only alphabetic characters"
 )]
 struct Args {
@@ -104,7 +108,7 @@ fn main() {
 
     // Print ASCII art banner (unless in quiet mode or JSON format)
     if !args.quiet && args.format != "json" {
-        println!("{}", ASCII_ART);
+        println!("{} v{}\n\n{}", APP_NAME, APP_VERSION, ASCII_ART.trim_start());
     }
 
     // Parse and expand exclude character ranges
