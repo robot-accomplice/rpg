@@ -4,6 +4,22 @@ use rpg::{
     parse_exclude_chars, parse_pattern, print_columns, validate_args,
 };
 
+const ASCII_ART: &str = r#"
+                              
+                              //                     ||                                
+                              ||                     ||                                
+               %               @@@@@            |@@@@||                         /@@\   
+      /@@@@@%%*@@@@@=##+: =.=@@@-@. :@=@%%%@ @@*       ^^^@@@@@@@@%:@#-:.: @@#@    @|  
+ <@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.@|  
+    ^^^^\__@@@@@@@@@/^^^^^          @@@=: #*.       #@@                         \@@/   
+                                    @  @:%@@        @@@                                
+                                       @*%@@        @@@                                
+                                        @@@         @@@                                
+                                        @@@                                            
+                                        @@@                                           
+                              
+"#;
+
 /// RPG - Rust Password Generator
 #[derive(Parser, Debug)]
 #[command(
@@ -88,6 +104,11 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
+
+    // Print ASCII art banner (unless in quiet mode or JSON format)
+    if !args.quiet && args.format != "json" {
+        println!("{}", ASCII_ART);
+    }
 
     // Parse and expand exclude character ranges
     let exclude_chars = match parse_exclude_chars(args.exclude_chars) {
