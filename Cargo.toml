@@ -1,6 +1,6 @@
 [package]
 name = "rpg-util"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2024"
 license = "MIT"
 authors = ["Jonathan Machen <jon.machen@robotaccomplice.com>"]
