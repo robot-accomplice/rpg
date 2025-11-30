@@ -4,22 +4,6 @@ use rpg_util::{
     generate_passwords, parse_exclude_chars, parse_pattern, print_columns, validate_args,
 };
 
-const ASCII_ART: &str = r#"
-
-                            :                  .:
-                           .%                  -#
-           ..:...          =%*+*-          .*#*#*::           .     .     -++.
- -==+++*****###***+=++==++*%@@@@#+++++++++##%%%%***++++++++++=++====+=++++++%@.
- :-=++*##%%@@@@@%%##**+==+++==+==#%@%%%%#+**++**#######*****+========+==+*%%@#
-           .:::::.               -::%###:      .*#-                       .::
-                                  ..*###.      :#%-
-                                    .#%*       .=+.
-                                    :#%#
-                                     :::
-                                     
-"#;
-
-const APP_NAME: &str = "RPG";
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 const BANNER_WIDTH: usize = 79; // Width of the ASCII art banner
 
@@ -113,16 +97,8 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    // Print ASCII art banner (unless in quiet mode or JSON format)
-    if !args.quiet && args.format != "json" {
-        let banner = ASCII_ART.strip_prefix('\n').unwrap_or(ASCII_ART);
-        println!(
-            "\n{}\n{:>width$}\n",
-            banner,
-            format!("{} v{}", APP_NAME, APP_VERSION),
-            width = BANNER_WIDTH
-        );
-    }
+    // ASCII art banner is only shown in --help output (via before_help)
+    // No banner is printed during normal execution
 
     // Parse and expand exclude character ranges
     let exclude_chars = match parse_exclude_chars(args.exclude_chars) {

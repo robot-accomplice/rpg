@@ -67,7 +67,7 @@ man rpg
 rpg --version
 ```
 
-You should see: `rpg 1.0.2`
+You should see: `rpg 1.1.0`
 
 ## Troubleshooting
 
