@@ -2,7 +2,7 @@ use std::process::Command;
 
 #[test]
 fn test_basic_generation() {
-    let output = Command::new("./target/release/rpg")
+    let output = Command::new(env!("CARGO_BIN_EXE_rpg"))
         .args(&["3", "--quiet"])
         .output()
         .expect("Failed to execute command");
@@ -21,7 +21,7 @@ fn test_basic_generation() {
 
 #[test]
 fn test_length_option() {
-    let output = Command::new("./target/release/rpg")
+    let output = Command::new(env!("CARGO_BIN_EXE_rpg"))
         .args(&["1", "--length", "20", "--quiet"])
         .output()
         .expect("Failed to execute command");
@@ -55,12 +55,12 @@ fn test_length_option() {
 
 #[test]
 fn test_seed_reproducibility() {
-    let output1 = Command::new("./target/release/rpg")
+    let output1 = Command::new(env!("CARGO_BIN_EXE_rpg"))
         .args(&["1", "--seed", "12345", "--quiet"])
         .output()
         .expect("Failed to execute command");
 
-    let output2 = Command::new("./target/release/rpg")
+    let output2 = Command::new(env!("CARGO_BIN_EXE_rpg"))
         .args(&["1", "--seed", "12345", "--quiet"])
         .output()
         .expect("Failed to execute command");
