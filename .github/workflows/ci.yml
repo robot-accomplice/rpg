@@ -33,6 +33,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
       - name: Install cargo-tarpaulin
         run: cargo install cargo-tarpaulin
       - name: Run coverage
@@ -53,6 +55,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
       - name: Build release
         run: cargo build --release --verbose
 
@@ -62,6 +66,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
       - name: Check package
         run: cargo package --allow-dirty
       - name: Check publish
