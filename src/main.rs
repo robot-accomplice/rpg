@@ -193,10 +193,10 @@ fn main() {
 
     // Handle copy to clipboard
     if args.copy && !passwords.is_empty() {
-        use clipboard::{ClipboardContext, ClipboardProvider};
-        match ClipboardContext::new() {
-            Ok(mut ctx) => {
-                if ctx.set_contents(passwords[0].clone()).is_ok() && !args.quiet {
+        use arboard::Clipboard;
+        match Clipboard::new() {
+            Ok(mut clipboard) => {
+                if clipboard.set_text(&passwords[0]).is_ok() && !args.quiet {
                     eprintln!("Password copied to clipboard");
                 }
             }

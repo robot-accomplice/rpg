@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [ main, master ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main, master ]
 
@@ -66,3 +67,57 @@ jobs:
       - name: Check publish
         run: cargo publish --dry-run
 
+  release:
+    name: Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [test, build]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: rpg
+            asset_name: rpg-linux-x86_64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact: rpg
+            asset_name: rpg-macos-arm64
+          - os: macos-13
+            target: x86_64-apple-darwin
+            artifact: rpg
+            asset_name: rpg-macos-x86_64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: rpg.exe
+            asset_name: rpg-windows-x86_64.exe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.target }}
+      - name: Rename and checksum (Unix)
+        if: matrix.os != 'windows-latest'
+        run: |
+          cd target/${{ matrix.target }}/release
+          cp ${{ matrix.artifact }} ${{ matrix.asset_name }}
+          shasum -a 256 ${{ matrix.asset_name }} > ${{ matrix.asset_name }}.sha256
+      - name: Rename and checksum (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          cd target/${{ matrix.target }}/release
+          Copy-Item ${{ matrix.artifact }} ${{ matrix.asset_name }}
+          $hash = (Get-FileHash ${{ matrix.asset_name }} -Algorithm SHA256).Hash.ToLower()
+          "$hash  ${{ matrix.asset_name }}" | Out-File -Encoding utf8 -NoNewline ${{ matrix.asset_name }}.sha256
+      - name: Upload to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            target/${{ matrix.target }}/release/${{ matrix.asset_name }}
+            target/${{ matrix.target }}/release/${{ matrix.asset_name }}.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

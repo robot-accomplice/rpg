@@ -1,6 +1,13 @@
 # Installation Guide
 
-## From Crates.io (Recommended)
+## Homebrew (macOS)
+
+```bash
+brew tap robot-accomplice/tap
+brew install rpg
+```
+
+## From Crates.io
 
 Once published, install with:
 
