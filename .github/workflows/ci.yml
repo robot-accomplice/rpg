@@ -29,7 +29,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           cargo install cargo-tarpaulin
-          cargo tarpaulin --out Xml --output-dir coverage
+          cargo tarpaulin --tests --out Xml --output-dir coverage
       - name: Upload to codecov
         if: matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v4
