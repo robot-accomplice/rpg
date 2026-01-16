@@ -192,6 +192,7 @@ fn main() {
     };
 
     // Handle copy to clipboard
+    #[cfg(feature = "clipboard")]
     if args.copy && !passwords.is_empty() {
         use arboard::Clipboard;
         match Clipboard::new() {
@@ -206,6 +207,10 @@ fn main() {
                 );
             }
         }
+    }
+    #[cfg(not(feature = "clipboard"))]
+    if args.copy && !args.quiet {
+        eprintln!("Warning: Clipboard functionality not available (clipboard feature not enabled)");
     }
 
     // Output passwords in requested format

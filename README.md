@@ -16,10 +16,10 @@
                                      
 ```
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org/)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/robot-accomplice/rpg)
+[![Rust](https://img.shields.io/badge/rust-1.92.0%20edition%202024-orange.svg)](https://www.rust-lang.org/)
+[![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)](https://github.com/robot-accomplice/rpg)
 [![Crates.io](https://img.shields.io/crates/v/rpg-util.svg)](https://crates.io/crates/rpg-util)
-[![Docs.rs](https://docs.rs/rpg-util/badge.svg)](https://docs.rs/rpg-util)
+[![Docs.rs](https://img.shields.io/docsrs/rpg-util?label=docs.rs)](https://docs.rs/rpg-util)
 [![codecov](https://codecov.io/gh/robot-accomplice/rpg/branch/main/graph/badge.svg)](https://codecov.io/gh/robot-accomplice/rpg)
 
 
