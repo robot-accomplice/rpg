@@ -1364,7 +1364,7 @@ mod tests {
         // Minimums take precedence, so password will be length 5
         let mut rng = StdRng::seed_from_u64(1001);
         let password = generate_password_with_minimums(&char_set, 4, Some(5), None, None, &mut rng);
-        
+
         // Should generate a password with at least 5 capitals (minimum takes precedence)
         assert!(password.len() >= 5);
         let capitals = password.chars().filter(|c| c.is_ascii_uppercase()).count();
@@ -1381,22 +1381,16 @@ mod tests {
         // Request min_capitals=3, min_numerals=3, min_symbols=3, but length=6
         // Minimums take precedence, so password will be at least length 9
         let mut rng = StdRng::seed_from_u64(1002);
-        let password = generate_password_with_minimums(
-            &char_set,
-            6,
-            Some(3),
-            Some(3),
-            Some(3),
-            &mut rng,
-        );
-        
+        let password =
+            generate_password_with_minimums(&char_set, 6, Some(3), Some(3), Some(3), &mut rng);
+
         // Password length should be at least 9 (sum of minimums)
         // May be more if minimums are applied then filled up to length
         assert!(password.len() >= 9);
         let capitals = password.chars().filter(|c| c.is_ascii_uppercase()).count();
         let numerals = password.chars().filter(|c| c.is_ascii_digit()).count();
         let symbols = password.chars().filter(|c| !c.is_alphanumeric()).count();
-        
+
         // Should meet all minimum requirements
         assert!(capitals >= 3);
         assert!(numerals >= 3);
@@ -1407,17 +1401,16 @@ mod tests {
     fn test_generate_password_with_minimums_exact_length() {
         use rand::{SeedableRng, rngs::StdRng};
 
-        let char_set = vec![
-            b'a', b'b', b'A', b'B', b'0', b'1', b'!', b'@',
-        ];
+        let char_set = vec![b'a', b'b', b'A', b'B', b'0', b'1', b'!', b'@'];
         // Request min_capitals=2, min_numerals=2, length=4
         let mut rng = StdRng::seed_from_u64(1003);
-        let password = generate_password_with_minimums(&char_set, 4, Some(2), Some(2), None, &mut rng);
-        
+        let password =
+            generate_password_with_minimums(&char_set, 4, Some(2), Some(2), None, &mut rng);
+
         assert_eq!(password.len(), 4);
         let capitals = password.chars().filter(|c| c.is_ascii_uppercase()).count();
         let numerals = password.chars().filter(|c| c.is_ascii_digit()).count();
-        
+
         assert!(capitals >= 2);
         assert!(numerals >= 2);
     }
@@ -1465,11 +1458,7 @@ mod tests {
 
     #[test]
     fn test_print_columns_very_long_passwords() {
-        let passwords = vec![
-            "a".repeat(100),
-            "b".repeat(50),
-            "c".repeat(150),
-        ];
+        let passwords = vec!["a".repeat(100), "b".repeat(50), "c".repeat(150)];
         // Test width calculation with very long passwords
         print_columns(passwords.clone(), 1, false);
         print_columns(passwords.clone(), 2, false);

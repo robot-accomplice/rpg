@@ -102,7 +102,9 @@ fn test_cli_invalid_exclude_chars() {
 
     assert!(!output.status.success(), "Should fail with invalid range");
     let stderr = String::from_utf8(output.stderr).unwrap();
-    assert!(stderr.contains("Invalid range") || stderr.contains("Error parsing exclude characters"));
+    assert!(
+        stderr.contains("Invalid range") || stderr.contains("Error parsing exclude characters")
+    );
 }
 
 #[test]
@@ -114,7 +116,9 @@ fn test_cli_invalid_include_chars() {
 
     assert!(!output.status.success(), "Should fail with invalid range");
     let stderr = String::from_utf8(output.stderr).unwrap();
-    assert!(stderr.contains("Invalid range") || stderr.contains("Error parsing include characters"));
+    assert!(
+        stderr.contains("Invalid range") || stderr.contains("Error parsing include characters")
+    );
 }
 
 #[test]
@@ -126,7 +130,9 @@ fn test_cli_invalid_pattern() {
 
     assert!(!output.status.success(), "Should fail with invalid pattern");
     let stderr = String::from_utf8(output.stderr).unwrap();
-    assert!(stderr.contains("Invalid pattern character") || stderr.contains("Error parsing pattern"));
+    assert!(
+        stderr.contains("Invalid pattern character") || stderr.contains("Error parsing pattern")
+    );
 }
 
 #[test]
@@ -162,14 +168,14 @@ fn test_cli_json_output() {
 
     assert!(output.status.success(), "Command failed: {:?}", output);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    
+
     // Should be valid JSON
     let json: serde_json::Value = serde_json::from_str(&stdout).expect("Should be valid JSON");
     assert!(json.get("passwords").is_some());
     assert!(json.get("count").is_some());
     assert!(json.get("length").is_some());
     assert!(json.get("entropy_bits").is_some());
-    
+
     let passwords = json.get("passwords").unwrap().as_array().unwrap();
     assert_eq!(passwords.len(), 2);
     assert_eq!(passwords[0].as_str().unwrap().len(), 10);
@@ -185,10 +191,14 @@ fn test_cli_table_output() {
     assert!(output.status.success(), "Command failed: {:?}", output);
     let stdout = String::from_utf8(output.stdout).unwrap();
     let lines: Vec<&str> = stdout.lines().filter(|l| !l.is_empty()).collect();
-    
+
     // Should have passwords in table format (may be on multiple lines in columns)
     // With 6 passwords and 2 columns, we'd expect at least 3 lines
-    assert!(lines.len() >= 3, "Expected at least 3 lines in table format, got {}", lines.len());
+    assert!(
+        lines.len() >= 3,
+        "Expected at least 3 lines in table format, got {}",
+        lines.len()
+    );
     // Verify passwords are present by checking non-empty content
     assert!(!stdout.trim().is_empty(), "Output should contain passwords");
 }
@@ -202,7 +212,7 @@ fn test_cli_table_with_header() {
 
     assert!(output.status.success(), "Command failed: {:?}", output);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    
+
     // Should contain header when not in quiet mode
     assert!(stdout.contains("Printing"));
 }
@@ -216,11 +226,11 @@ fn test_cli_quiet_mode() {
 
     assert!(output.status.success(), "Command failed: {:?}", output);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    
+
     // Should not contain banner or header in quiet mode
     assert!(!stdout.contains("RPG v"));
     assert!(!stdout.contains("Printing"));
-    
+
     // Should only have passwords
     let lines: Vec<&str> = stdout.lines().filter(|l| !l.is_empty()).collect();
     assert_eq!(lines.len(), 3);
@@ -235,8 +245,13 @@ fn test_cli_pattern_generation() {
 
     assert!(output.status.success(), "Command failed: {:?}", output);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    let password = stdout.lines().filter(|l| !l.is_empty()).next().unwrap().trim();
-    
+    let password = stdout
+        .lines()
+        .filter(|l| !l.is_empty())
+        .next()
+        .unwrap()
+        .trim();
+
     assert_eq!(password.len(), 9);
     // Verify pattern was followed (can't predict exact chars but can verify types)
     let chars: Vec<char> = password.chars().collect();
@@ -260,27 +275,48 @@ fn test_cli_pattern_case_insensitive() {
 
     assert!(output.status.success(), "Command failed: {:?}", output);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    let password = stdout.lines().filter(|l| !l.is_empty()).next().unwrap().trim();
-    
+    let password = stdout
+        .lines()
+        .filter(|l| !l.is_empty())
+        .next()
+        .unwrap()
+        .trim();
+
     assert_eq!(password.len(), 9);
 }
 
 #[test]
 fn test_cli_minimum_requirements() {
     let output = Command::new(env!("CARGO_BIN_EXE_rpg"))
-        .args(&["1", "--length", "10", "--min-capitals", "2", "--min-numerals", "2", "--min-symbols", "2", "--quiet"])
+        .args(&[
+            "1",
+            "--length",
+            "10",
+            "--min-capitals",
+            "2",
+            "--min-numerals",
+            "2",
+            "--min-symbols",
+            "2",
+            "--quiet",
+        ])
         .output()
         .expect("Failed to execute command");
 
     assert!(output.status.success(), "Command failed: {:?}", output);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    let password = stdout.lines().filter(|l| !l.is_empty()).next().unwrap().trim();
-    
+    let password = stdout
+        .lines()
+        .filter(|l| !l.is_empty())
+        .next()
+        .unwrap()
+        .trim();
+
     assert_eq!(password.len(), 10);
     let capitals = password.chars().filter(|c| c.is_ascii_uppercase()).count();
     let numerals = password.chars().filter(|c| c.is_ascii_digit()).count();
     let symbols = password.chars().filter(|c| !c.is_alphanumeric()).count();
-    
+
     assert!(capitals >= 2);
     assert!(numerals >= 2);
     assert!(symbols >= 2);
@@ -289,12 +325,30 @@ fn test_cli_minimum_requirements() {
 #[test]
 fn test_cli_seed_reproducibility_with_options() {
     let output1 = Command::new(env!("CARGO_BIN_EXE_rpg"))
-        .args(&["1", "--seed", "999", "--length", "20", "--min-capitals", "3", "--quiet"])
+        .args(&[
+            "1",
+            "--seed",
+            "999",
+            "--length",
+            "20",
+            "--min-capitals",
+            "3",
+            "--quiet",
+        ])
         .output()
         .expect("Failed to execute command");
 
     let output2 = Command::new(env!("CARGO_BIN_EXE_rpg"))
-        .args(&["1", "--seed", "999", "--length", "20", "--min-capitals", "3", "--quiet"])
+        .args(&[
+            "1",
+            "--seed",
+            "999",
+            "--length",
+            "20",
+            "--min-capitals",
+            "3",
+            "--quiet",
+        ])
         .output()
         .expect("Failed to execute command");
 
@@ -303,14 +357,8 @@ fn test_cli_seed_reproducibility_with_options() {
 
     let stdout1 = String::from_utf8(output1.stdout).unwrap();
     let stdout2 = String::from_utf8(output2.stdout).unwrap();
-    let pass1: Vec<&str> = stdout1
-        .lines()
-        .filter(|l| !l.is_empty())
-        .collect();
-    let pass2: Vec<&str> = stdout2
-        .lines()
-        .filter(|l| !l.is_empty())
-        .collect();
+    let pass1: Vec<&str> = stdout1.lines().filter(|l| !l.is_empty()).collect();
+    let pass2: Vec<&str> = stdout2.lines().filter(|l| !l.is_empty()).collect();
 
     assert_eq!(pass1, pass2);
 }
@@ -318,14 +366,26 @@ fn test_cli_seed_reproducibility_with_options() {
 #[test]
 fn test_cli_include_chars() {
     let output = Command::new(env!("CARGO_BIN_EXE_rpg"))
-        .args(&["1", "--include-chars", "a,b,c,1,2,3", "--length", "10", "--quiet"])
+        .args(&[
+            "1",
+            "--include-chars",
+            "a,b,c,1,2,3",
+            "--length",
+            "10",
+            "--quiet",
+        ])
         .output()
         .expect("Failed to execute command");
 
     assert!(output.status.success(), "Command failed: {:?}", output);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    let password = stdout.lines().filter(|l| !l.is_empty()).next().unwrap().trim();
-    
+    let password = stdout
+        .lines()
+        .filter(|l| !l.is_empty())
+        .next()
+        .unwrap()
+        .trim();
+
     assert_eq!(password.len(), 10);
     // All characters should be from the include set
     for c in password.chars() {
@@ -336,14 +396,28 @@ fn test_cli_include_chars() {
 #[test]
 fn test_cli_include_chars_with_exclude() {
     let output = Command::new(env!("CARGO_BIN_EXE_rpg"))
-        .args(&["1", "--include-chars", "a,b,c", "--exclude-chars", "a", "--length", "10", "--quiet"])
+        .args(&[
+            "1",
+            "--include-chars",
+            "a,b,c",
+            "--exclude-chars",
+            "a",
+            "--length",
+            "10",
+            "--quiet",
+        ])
         .output()
         .expect("Failed to execute command");
 
     assert!(output.status.success(), "Command failed: {:?}", output);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    let password = stdout.lines().filter(|l| !l.is_empty()).next().unwrap().trim();
-    
+    let password = stdout
+        .lines()
+        .filter(|l| !l.is_empty())
+        .next()
+        .unwrap()
+        .trim();
+
     assert_eq!(password.len(), 10);
     // Should only contain 'b' or 'c'
     for c in password.chars() {
@@ -354,14 +428,26 @@ fn test_cli_include_chars_with_exclude() {
 #[test]
 fn test_cli_include_chars_with_range() {
     let output = Command::new(env!("CARGO_BIN_EXE_rpg"))
-        .args(&["1", "--include-chars", "a-z,0-9", "--length", "10", "--quiet"])
+        .args(&[
+            "1",
+            "--include-chars",
+            "a-z,0-9",
+            "--length",
+            "10",
+            "--quiet",
+        ])
         .output()
         .expect("Failed to execute command");
 
     assert!(output.status.success(), "Command failed: {:?}", output);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    let password = stdout.lines().filter(|l| !l.is_empty()).next().unwrap().trim();
-    
+    let password = stdout
+        .lines()
+        .filter(|l| !l.is_empty())
+        .next()
+        .unwrap()
+        .trim();
+
     assert_eq!(password.len(), 10);
     // All characters should be lowercase or digit
     for c in password.chars() {
@@ -379,8 +465,13 @@ fn test_cli_character_type_combinations() {
 
     assert!(output.status.success(), "Command failed: {:?}", output);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    let password = stdout.lines().filter(|l| !l.is_empty()).next().unwrap().trim();
-    
+    let password = stdout
+        .lines()
+        .filter(|l| !l.is_empty())
+        .next()
+        .unwrap()
+        .trim();
+
     // Should not contain uppercase letters
     assert!(!password.chars().any(|c| c.is_ascii_uppercase()));
 }
@@ -395,8 +486,13 @@ fn test_cli_pattern_overrides_length() {
 
     assert!(output.status.success(), "Command failed: {:?}", output);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    let password = stdout.lines().filter(|l| !l.is_empty()).next().unwrap().trim();
-    
+    let password = stdout
+        .lines()
+        .filter(|l| !l.is_empty())
+        .next()
+        .unwrap()
+        .trim();
+
     // Should be length 3 (pattern length), not 20
     assert_eq!(password.len(), 3);
 }
@@ -410,8 +506,13 @@ fn test_cli_exclude_chars_with_range() {
 
     assert!(output.status.success(), "Command failed: {:?}", output);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    let password = stdout.lines().filter(|l| !l.is_empty()).next().unwrap().trim();
-    
+    let password = stdout
+        .lines()
+        .filter(|l| !l.is_empty())
+        .next()
+        .unwrap()
+        .trim();
+
     // Should not contain lowercase letters
     assert!(!password.chars().any(|c| c.is_ascii_lowercase()));
 }
