@@ -1,11 +1,11 @@
 use clap::Parser;
 use rpg_util::{
-    GenerationParams, PasswordArgs, build_char_set, calculate_entropy, column_count,
-    generate_passwords, parse_exclude_chars, parse_pattern, print_columns, validate_args,
+    CharacterSet, PasswordConfig, PasswordError, calculate_entropy, column_count,
+    generate_passwords, parse_char_specs, parse_pattern, print_columns,
 };
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
-const BANNER_WIDTH: usize = 79; // Width of the ASCII art banner
+const BANNER_WIDTH: usize = 79;
 
 fn format_banner_with_caption() -> String {
     let banner = include_str!("../banner.txt");
@@ -96,53 +96,40 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
+    if let Err(e) = run(args) {
+        eprintln!("{}", e);
+        std::process::exit(1);
+    }
+}
 
-    // ASCII art banner is only shown in --help output (via before_help)
-    // No banner is printed during normal execution
+fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
+    let config = build_config(&args)?;
+    config.validate()?;
 
-    // Parse and expand exclude character ranges
-    let exclude_chars = match parse_exclude_chars(args.exclude_chars) {
-        Ok(chars) => chars,
-        Err(e) => {
-            eprintln!("Error parsing exclude characters: {}", e);
-            std::process::exit(1);
-        }
-    };
+    let char_set = CharacterSet::from_config(&config)?;
+    let passwords = generate(&char_set, &config, args.seed);
 
-    // Parse and expand include character ranges (if specified)
+    copy_to_clipboard(&passwords, args.copy, args.quiet);
+    output_passwords(&passwords, &char_set, &args);
+
+    Ok(())
+}
+
+fn build_config(args: &Args) -> Result<PasswordConfig, PasswordError> {
+    let exclude_chars = parse_char_specs(args.exclude_chars.clone())?;
+
     let include_chars = if args.include_chars.is_empty() {
         None
     } else {
-        match parse_exclude_chars(args.include_chars) {
-            Ok(chars) => Some(chars),
-            Err(e) => {
-                eprintln!("Error parsing include characters: {}", e);
-                std::process::exit(1);
-            }
-        }
+        Some(parse_char_specs(args.include_chars.clone())?)
     };
 
-    // Parse pattern if specified
-    let pattern = if let Some(ref pat_str) = args.pattern {
-        match parse_pattern(pat_str) {
-            Ok(pat) => Some(pat),
-            Err(e) => {
-                eprintln!("Error parsing pattern: {}", e);
-                std::process::exit(1);
-            }
-        }
-    } else {
-        None
+    let pattern = match args.pattern {
+        Some(ref pat_str) => Some(parse_pattern(pat_str)?),
+        None => None,
     };
 
-    // If pattern is specified, use its length; otherwise use args.length
-    let effective_length = pattern
-        .as_ref()
-        .map(|p| p.len() as u32)
-        .unwrap_or(args.length);
-
-    // Convert CLI args to library args
-    let password_args = PasswordArgs {
+    let mut config = PasswordConfig {
         capitals_off: args.capitals_off,
         numerals_off: args.numerals_off,
         symbols_off: args.symbols_off,
@@ -151,53 +138,35 @@ fn main() {
         min_capitals: args.min_capitals,
         min_numerals: args.min_numerals,
         min_symbols: args.min_symbols,
-        pattern: pattern.clone(),
-        length: effective_length,
-        password_count: args.password_count,
-    };
-
-    // Validate arguments
-    if let Err(e) = validate_args(&password_args) {
-        eprintln!("{}", e);
-        std::process::exit(1);
-    }
-
-    // Build character set once (more efficient than building per character)
-    let char_set = match build_char_set(&password_args) {
-        Ok(set) => set,
-        Err(e) => {
-            eprintln!("{}", e);
-            std::process::exit(1);
-        }
-    };
-
-    // Create generation parameters
-    let gen_params = GenerationParams {
-        length: effective_length,
+        pattern,
+        length: args.length,
         count: args.password_count,
-        min_capitals: args.min_capitals,
-        min_numerals: args.min_numerals,
-        min_symbols: args.min_symbols,
-        pattern: pattern.clone(),
     };
 
-    // Generate passwords with optional seed
-    let passwords = if let Some(seed) = args.seed {
+    // Pattern length overrides --length
+    config.length = config.effective_length();
+
+    Ok(config)
+}
+
+fn generate(char_set: &CharacterSet, config: &PasswordConfig, seed: Option<u64>) -> Vec<String> {
+    if let Some(seed) = seed {
         use rand::{SeedableRng, rngs::StdRng};
         let mut rng = StdRng::seed_from_u64(seed);
-        generate_passwords(&char_set, &gen_params, &mut rng)
+        generate_passwords(char_set, config, &mut rng)
     } else {
         let mut rng = rand::rng();
-        generate_passwords(&char_set, &gen_params, &mut rng)
-    };
+        generate_passwords(char_set, config, &mut rng)
+    }
+}
 
-    // Handle copy to clipboard
+fn copy_to_clipboard(passwords: &[String], should_copy: bool, quiet: bool) {
     #[cfg(feature = "clipboard")]
-    if args.copy && !passwords.is_empty() {
+    if should_copy && !passwords.is_empty() {
         use arboard::Clipboard;
         match Clipboard::new() {
             Ok(mut clipboard) => {
-                if clipboard.set_text(&passwords[0]).is_ok() && !args.quiet {
+                if clipboard.set_text(&passwords[0]).is_ok() && !quiet {
                     eprintln!("Password copied to clipboard");
                 }
             }
@@ -209,29 +178,38 @@ fn main() {
         }
     }
     #[cfg(not(feature = "clipboard"))]
-    if args.copy && !args.quiet {
+    if should_copy && !quiet {
         eprintln!("Warning: Clipboard functionality not available (clipboard feature not enabled)");
     }
+}
 
-    // Output passwords in requested format
+fn output_passwords(passwords: &[String], char_set: &CharacterSet, args: &Args) {
     match args.format.as_str() {
-        "json" => {
-            use serde_json::json;
-            let json_output = json!({
-                "passwords": passwords,
-                "count": passwords.len(),
-                "length": args.length,
-                "entropy_bits": calculate_entropy(char_set.len(), args.length)
-            });
-            println!("{}", serde_json::to_string_pretty(&json_output).unwrap());
-        }
-        _ => {
-            let show_header = !args.quiet;
-            if args.table {
-                print_columns(passwords, column_count(args.password_count), show_header);
-            } else {
-                print_columns(passwords, 1, false);
-            }
-        }
+        "json" => output_json(passwords, char_set, args.length),
+        _ => output_text(passwords, args),
+    }
+}
+
+fn output_json(passwords: &[String], char_set: &CharacterSet, length: u32) {
+    use serde_json::json;
+    let json_output = json!({
+        "passwords": passwords,
+        "count": passwords.len(),
+        "length": length,
+        "entropy_bits": calculate_entropy(char_set.len(), length)
+    });
+    println!("{}", serde_json::to_string_pretty(&json_output).unwrap());
+}
+
+fn output_text(passwords: &[String], args: &Args) {
+    let show_header = !args.quiet;
+    if args.table {
+        print_columns(
+            passwords.to_vec(),
+            column_count(args.password_count),
+            show_header,
+        );
+    } else {
+        print_columns(passwords.to_vec(), 1, false);
     }
 }
