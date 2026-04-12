@@ -1,9 +1,9 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use rand::{SeedableRng, rngs::StdRng};
-use rpg_util::{GenerationParams, PasswordArgs, build_char_set, generate_passwords};
+use rpg_util::{CharacterSet, PasswordConfig, generate_passwords};
 
 fn bench_password_generation(c: &mut Criterion) {
-    let args = PasswordArgs {
+    let config = PasswordConfig {
         capitals_off: false,
         numerals_off: false,
         symbols_off: false,
@@ -14,46 +14,37 @@ fn bench_password_generation(c: &mut Criterion) {
         min_symbols: None,
         pattern: None,
         length: 16,
-        password_count: 1,
+        count: 1,
     };
 
-    let char_set = build_char_set(&args).unwrap();
+    let char_set = CharacterSet::from_config(&config).unwrap();
     let mut rng = StdRng::seed_from_u64(42);
 
     c.bench_function("generate_password_16", |b| {
-        let params = GenerationParams {
+        let cfg = PasswordConfig {
             length: 16,
             count: 1,
-            min_capitals: None,
-            min_numerals: None,
-            min_symbols: None,
-            pattern: None,
+            ..config.clone()
         };
-        b.iter(|| generate_passwords(black_box(&char_set), black_box(&params), &mut rng))
+        b.iter(|| generate_passwords(black_box(&char_set), black_box(&cfg), &mut rng))
     });
 
     c.bench_function("generate_password_64", |b| {
-        let params = GenerationParams {
+        let cfg = PasswordConfig {
             length: 64,
             count: 1,
-            min_capitals: None,
-            min_numerals: None,
-            min_symbols: None,
-            pattern: None,
+            ..config.clone()
         };
-        b.iter(|| generate_passwords(black_box(&char_set), black_box(&params), &mut rng))
+        b.iter(|| generate_passwords(black_box(&char_set), black_box(&cfg), &mut rng))
     });
 
     c.bench_function("generate_100_passwords", |b| {
-        let params = GenerationParams {
+        let cfg = PasswordConfig {
             length: 16,
             count: 100,
-            min_capitals: None,
-            min_numerals: None,
-            min_symbols: None,
-            pattern: None,
+            ..config.clone()
         };
-        b.iter(|| generate_passwords(black_box(&char_set), black_box(&params), &mut rng))
+        b.iter(|| generate_passwords(black_box(&char_set), black_box(&cfg), &mut rng))
     });
 }
 
