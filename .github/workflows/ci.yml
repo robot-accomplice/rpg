@@ -60,6 +60,8 @@ jobs:
     name: Release
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [test, build]
+    permissions:
+      contents: write
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -72,7 +74,7 @@ jobs:
             target: aarch64-apple-darwin
             artifact: rpg
             asset_name: rpg-macos-arm64
-          - os: macos-13
+          - os: macos-latest
             target: x86_64-apple-darwin
             artifact: rpg
             asset_name: rpg-macos-x86_64
