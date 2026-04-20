@@ -1,11 +1,37 @@
 # Installation Guide
 
-## Homebrew (macOS)
+## Quick Install (recommended)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/robot-accomplice/rpg/main/install.sh | sh
+```
+
+This downloads the latest prebuilt binary, verifies its SHA256 checksum, installs to `~/.local/bin`, and adds it to your PATH.
+
+To install a specific version or to a custom directory:
+
+```bash
+RPG_VERSION=v2.0.0 sh install.sh                  # specific version
+RPG_INSTALL=/usr/local/bin sh install.sh           # custom directory
+```
+
+## Homebrew (macOS & Linux)
+
+```bash
+brew install robot-accomplice/tap/rpg
+```
+
+Or the two-step equivalent:
 
 ```bash
 brew tap robot-accomplice/tap
 brew install rpg
 ```
+
+Upgrade with `brew upgrade rpg`. The formula is auto-updated on every published release via
+[`.github/workflows/homebrew.yml`](.github/workflows/homebrew.yml) and tracks the assets from
+the corresponding GitHub release (macOS arm64/x86_64, Linux x86_64, and — from the next
+release onward — Linux arm64).
 
 ## From Crates.io
 
@@ -74,7 +100,7 @@ man rpg
 rpg --version
 ```
 
-You should see: `rpg 1.1.0`
+You should see the current `rpg` version (e.g. `rpg 2.0.0`).
 
 ## Troubleshooting
 

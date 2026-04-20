@@ -44,6 +44,20 @@ A fast, secure, and customizable command-line password generator written in Rust
 
 ## Installation
 
+### Homebrew (macOS & Linux)
+
+```bash
+brew install robot-accomplice/tap/rpg
+```
+
+### Quick Install (prebuilt binary)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/robot-accomplice/rpg/main/install.sh | sh
+```
+
+Downloads the latest release, verifies its SHA256 checksum, installs to `~/.local/bin`, and adds it to your PATH. Supports Linux (x86_64), macOS (ARM64 & x86_64), and Windows (via MSYS2/Git Bash).
+
 ### From Crates.io
 
 ```bash

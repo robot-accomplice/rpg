@@ -1,0 +1,155 @@
+name: Homebrew
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish to the tap (e.g. v2.0.0)"
+        required: true
+        type: string
+
+jobs:
+  bump-formula:
+    name: Bump Homebrew formula
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.release.prerelease }}
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - name: Compute release download URLs and SHAs
+        id: assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          version="${TAG#v}"
+          base_url="https://github.com/robot-accomplice/rpg/releases/download/${TAG}"
+
+          tmpdir="$(mktemp -d)"
+          trap 'rm -rf "${tmpdir}"' EXIT
+
+          fetch_sha_with_retry() {
+            local asset_name="$1"
+            local out="${tmpdir}/${asset_name}.sha256"
+            local attempt=0
+            local max_attempts=30
+            while [ "${attempt}" -lt "${max_attempts}" ]; do
+              if curl -fsSL "${base_url}/${asset_name}.sha256" -o "${out}"; then
+                awk '{print $1}' "${out}"
+                return 0
+              fi
+              attempt=$((attempt + 1))
+              echo "Waiting for ${asset_name}.sha256 (attempt ${attempt}/${max_attempts})..." >&2
+              sleep 20
+            done
+            echo "Timed out waiting for ${asset_name}.sha256" >&2
+            return 1
+          }
+
+          name_macos_arm64="rpg-${TAG}-macos-arm64"
+          name_macos_x86_64="rpg-${TAG}-macos-x86_64"
+          name_linux_x86_64="rpg-${TAG}-linux-x86_64"
+          name_linux_arm64="rpg-${TAG}-linux-arm64"
+
+          sha_macos_arm64="$(fetch_sha_with_retry "${name_macos_arm64}")"
+          sha_macos_x86_64="$(fetch_sha_with_retry "${name_macos_x86_64}")"
+          sha_linux_x86_64="$(fetch_sha_with_retry "${name_linux_x86_64}")"
+          sha_linux_arm64="$(fetch_sha_with_retry "${name_linux_arm64}")"
+
+          {
+            echo "version=${version}"
+            echo "base_url=${base_url}"
+            echo "name_macos_arm64=${name_macos_arm64}"
+            echo "name_macos_x86_64=${name_macos_x86_64}"
+            echo "name_linux_x86_64=${name_linux_x86_64}"
+            echo "name_linux_arm64=${name_linux_arm64}"
+            echo "sha_macos_arm64=${sha_macos_arm64}"
+            echo "sha_macos_x86_64=${sha_macos_x86_64}"
+            echo "sha_linux_x86_64=${sha_linux_x86_64}"
+            echo "sha_linux_arm64=${sha_linux_arm64}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Checkout homebrew-tap
+        uses: actions/checkout@v4
+        with:
+          repository: robot-accomplice/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+          path: homebrew-tap
+          ref: main
+
+      - name: Render rpg.rb
+        env:
+          VERSION: ${{ steps.assets.outputs.version }}
+          BASE_URL: ${{ steps.assets.outputs.base_url }}
+          NAME_MACOS_ARM64: ${{ steps.assets.outputs.name_macos_arm64 }}
+          NAME_MACOS_X86_64: ${{ steps.assets.outputs.name_macos_x86_64 }}
+          NAME_LINUX_X86_64: ${{ steps.assets.outputs.name_linux_x86_64 }}
+          NAME_LINUX_ARM64: ${{ steps.assets.outputs.name_linux_arm64 }}
+          SHA_MACOS_ARM64: ${{ steps.assets.outputs.sha_macos_arm64 }}
+          SHA_MACOS_X86_64: ${{ steps.assets.outputs.sha_macos_x86_64 }}
+          SHA_LINUX_X86_64: ${{ steps.assets.outputs.sha_linux_x86_64 }}
+          SHA_LINUX_ARM64: ${{ steps.assets.outputs.sha_linux_arm64 }}
+        run: |
+          set -euo pipefail
+
+          formula="homebrew-tap/rpg.rb"
+
+          cat > "${formula}" <<FORMULA
+          class Rpg < Formula
+            desc "Rust Password Generator - A fast and customizable password generator"
+            homepage "https://github.com/robot-accomplice/rpg"
+            version "${VERSION}"
+            license "MIT"
+
+            on_macos do
+              on_arm do
+                url "${BASE_URL}/${NAME_MACOS_ARM64}"
+                sha256 "${SHA_MACOS_ARM64}"
+              end
+              on_intel do
+                url "${BASE_URL}/${NAME_MACOS_X86_64}"
+                sha256 "${SHA_MACOS_X86_64}"
+              end
+            end
+
+            on_linux do
+              on_intel do
+                url "${BASE_URL}/${NAME_LINUX_X86_64}"
+                sha256 "${SHA_LINUX_X86_64}"
+              end
+              on_arm do
+                url "${BASE_URL}/${NAME_LINUX_ARM64}"
+                sha256 "${SHA_LINUX_ARM64}"
+              end
+            end
+
+            def install
+              bin.install Dir["rpg*"].first => "rpg"
+            end
+
+            test do
+              assert_match "RPG", shell_output("#{bin}/rpg --help")
+            end
+          end
+          FORMULA
+
+      - name: Commit and push formula update
+        working-directory: homebrew-tap
+        env:
+          VERSION: ${{ steps.assets.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name "robot-accomplice-bot"
+          git config user.email "bot@robot-accomplice.github.io"
+
+          if git diff --quiet -- rpg.rb; then
+            echo "No changes to rpg.rb; skipping commit."
+            exit 0
+          fi
+
+          git add rpg.rb
+          git commit -m "rpg: bump to v${VERSION}"
+          git push origin main
