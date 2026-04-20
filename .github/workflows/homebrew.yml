@@ -73,7 +73,7 @@ jobs:
           } >> "${GITHUB_OUTPUT}"
 
       - name: Checkout homebrew-tap
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: robot-accomplice/homebrew-tap
           token: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
