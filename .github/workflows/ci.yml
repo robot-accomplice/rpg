@@ -69,45 +69,67 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             artifact: rpg
-            asset_name: rpg-linux-x86_64
+            suffix: linux-x86_64
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            artifact: rpg
+            suffix: linux-arm64
+            cross: true
           - os: macos-latest
             target: aarch64-apple-darwin
             artifact: rpg
-            asset_name: rpg-macos-arm64
+            suffix: macos-arm64
           - os: macos-latest
             target: x86_64-apple-darwin
             artifact: rpg
-            asset_name: rpg-macos-x86_64
+            suffix: macos-x86_64
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             artifact: rpg.exe
-            asset_name: rpg-windows-x86_64.exe
+            suffix: windows-x86_64.exe
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+      - name: Install aarch64 cross-compilation toolchain
+        if: matrix.cross
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> "$GITHUB_ENV"
       - name: Build release binary
         run: cargo build --release --target ${{ matrix.target }}
+      - name: Compute versioned asset name
+        id: asset
+        shell: bash
+        env:
+          SUFFIX: ${{ matrix.suffix }}
+        run: |
+          echo "name=rpg-${GITHUB_REF_NAME}-${SUFFIX}" >> "$GITHUB_OUTPUT"
       - name: Rename and checksum (Unix)
         if: matrix.os != 'windows-latest'
+        env:
+          ASSET_NAME: ${{ steps.asset.outputs.name }}
         run: |
           cd target/${{ matrix.target }}/release
-          cp ${{ matrix.artifact }} ${{ matrix.asset_name }}
-          shasum -a 256 ${{ matrix.asset_name }} > ${{ matrix.asset_name }}.sha256
+          cp "${{ matrix.artifact }}" "$ASSET_NAME"
+          shasum -a 256 "$ASSET_NAME" > "$ASSET_NAME.sha256"
       - name: Rename and checksum (Windows)
         if: matrix.os == 'windows-latest'
         shell: pwsh
+        env:
+          ASSET_NAME: ${{ steps.asset.outputs.name }}
         run: |
           cd target/${{ matrix.target }}/release
-          Copy-Item ${{ matrix.artifact }} ${{ matrix.asset_name }}
-          $hash = (Get-FileHash ${{ matrix.asset_name }} -Algorithm SHA256).Hash.ToLower()
-          "$hash  ${{ matrix.asset_name }}" | Out-File -Encoding utf8 -NoNewline ${{ matrix.asset_name }}.sha256
+          Copy-Item ${{ matrix.artifact }} $env:ASSET_NAME
+          $hash = (Get-FileHash $env:ASSET_NAME -Algorithm SHA256).Hash.ToLower()
+          "$hash  $env:ASSET_NAME" | Out-File -Encoding utf8 -NoNewline "$env:ASSET_NAME.sha256"
       - name: Upload to release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
-            target/${{ matrix.target }}/release/${{ matrix.asset_name }}
-            target/${{ matrix.target }}/release/${{ matrix.asset_name }}.sha256
+            target/${{ matrix.target }}/release/${{ steps.asset.outputs.name }}
+            target/${{ matrix.target }}/release/${{ steps.asset.outputs.name }}.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
