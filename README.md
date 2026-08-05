@@ -2,7 +2,7 @@
 <h1>
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/rpg-dark.svg">
-    <img align="middle" alt="RPG logo" width="44" height="44" src="docs/assets/rpg-light.svg">
+    <img align="absmiddle" alt="RPG logo" width="38" height="38" src="docs/assets/rpg-light.svg">
   </picture>
   &nbsp;RPG: Rust Password Generator
 </h1>
