@@ -1,12 +1,11 @@
 
-<p align="center">
+<h1>
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/rpg-dark.svg">
-    <img alt="RPG" width="72" height="72" src="docs/assets/rpg-light.svg">
+    <img align="middle" alt="RPG logo" width="44" height="44" src="docs/assets/rpg-light.svg">
   </picture>
-</p>
-
-# RPG - Rust Password Generator
+  &nbsp;RPG: Rust Password Generator
+</h1>
 
 ```
 
