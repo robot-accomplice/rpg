@@ -3,6 +3,7 @@
 *.pem
 .idea/
 .vscode/
+.claude/
 *.swp
 *.swo
 *~
